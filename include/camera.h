@@ -89,10 +89,10 @@ class Camera
           Position -= Front * velocity;
           break;
           case LEFT:
-            Yaw -= 22.5 * deltaTime;
+            Yaw -= 45.0 * deltaTime;
           break;
           case RIGHT:
-            Yaw += 22.5 * deltaTime;
+            Yaw += 45.0 * deltaTime;
           break;
         default:
           break;

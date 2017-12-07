@@ -61,12 +61,12 @@ bool HeightPlane::initHeightPlane()
 {
   bool bRet = true;
   int x, y;
-  float texIdx = 0.0;
+  float texIdx = 1.0;
   int i = 0;
   double h = 0;
 
-  for( x = 0; x < HP_XSIZE; x++ ) {
-    for( y = 0; y < HP_YSIZE; y++ ) {
+  for( y = 0; y < HP_YSIZE; y++ ) {
+    for( x = 0; x < HP_XSIZE; x++ ) {
       h = heightFn(x, y);
       if( x > 0 ) {
         h += 100.0 / (HP_XSIZE - x );
@@ -87,47 +87,109 @@ bool HeightPlane::initHeightPlane()
             (HP_YSIZE - 1 ) == y
            )
         ) {
+
+        // Face A 
+        int j = i;    // for convenience
+        int k = i > 48 ? i - 48 : i;    // for convenience
         m_vertices[ i++ ] = (x * HP_GRIDSIZE) ;
         m_vertices[ i++ ] = m_heightPlane[ x - 1 ][ y - 1 ];
         m_vertices[ i++ ] = (y * HP_GRIDSIZE) ;
+        i += 3;   // skip normal (computed after face)
         m_vertices[ i++ ] = 0.0;
         m_vertices[ i++ ] = 0.0;
 
         m_vertices[ i++ ] = (x * HP_GRIDSIZE)  + HP_GRIDSIZE;
         m_vertices[ i++ ] = m_heightPlane[ x ][ y ];
         m_vertices[ i++ ] = (y * HP_GRIDSIZE)  + HP_GRIDSIZE;
+        i += 3;
         m_vertices[ i++ ] = texIdx;
         m_vertices[ i++ ] = texIdx;
 
         m_vertices[ i++ ] = (x * HP_GRIDSIZE) ;
         m_vertices[ i++ ] = m_heightPlane[ x - 1 ][ y ];
         m_vertices[ i++ ] = (y * HP_GRIDSIZE)  + HP_GRIDSIZE;
+        i += 3;
         m_vertices[ i++ ] = 0.0;
         m_vertices[ i++ ] = texIdx;
 
+        glm::vec3 a = { m_vertices[ j + 0 ], m_vertices[ j + 0 + 1 ], m_vertices[ j + 0 + 2 ] };
+        glm::vec3 b = { m_vertices[ j + 8 ], m_vertices[ j + 8 + 1 ], m_vertices[ j + 8 + 2 ] };
+        glm::vec3 c = { m_vertices[ j +16 ], m_vertices[ j +16 + 1 ], m_vertices[ j +16 + 2 ] };
+        glm::vec3 normalA = glm::normalize( glm::cross( c - a, b - a ) );
+        m_vertices[ j + 3 + 0 ] = m_vertices[ j + 11 + 0 ] = m_vertices[ j + 19 + 0 ] = normalA.x;
+        m_vertices[ j + 3 + 1 ] = m_vertices[ j + 11 + 1 ] = m_vertices[ j + 19 + 1 ] = normalA.y;
+        m_vertices[ j + 3 + 2 ] = m_vertices[ j + 11 + 2 ] = m_vertices[ j + 19 + 2 ] = normalA.z;
+
+				// Face  B
+				int l = ( y > 2 ) ? ( j - HP_XSIZE * 8 * 6 ) : j;
         m_vertices[ i++ ] = (x * HP_GRIDSIZE)  + HP_GRIDSIZE;
         m_vertices[ i++ ] = m_heightPlane[ x ][ y ];
         m_vertices[ i++ ] = (y * HP_GRIDSIZE)  + HP_GRIDSIZE;
+        i += 3;
         m_vertices[ i++ ] = texIdx;
         m_vertices[ i++ ] = texIdx;
-
-        m_vertices[ i++ ] = (x * HP_GRIDSIZE)  + HP_GRIDSIZE;
-        m_vertices[ i++ ] = m_heightPlane[ x ][ y - 1 ];
-        m_vertices[ i++ ] = (y * HP_GRIDSIZE) ;
-        m_vertices[ i++ ] = texIdx;
-        m_vertices[ i++ ] = 0.0;
 
         m_vertices[ i++ ] = (x * HP_GRIDSIZE) ;
         m_vertices[ i++ ] = m_heightPlane[ x - 1 ][ y - 1];
         m_vertices[ i++ ] = (y * HP_GRIDSIZE) ;
+        i += 3;
         m_vertices[ i++ ] = 0.0;
         m_vertices[ i++ ] = 0.0;
 
-        if( texIdx > 0 ) {
-          texIdx = 1.0f;
-        } else {
-          texIdx = 1.0f;
-        }
+        m_vertices[ i++ ] = (x * HP_GRIDSIZE)  + HP_GRIDSIZE;
+        m_vertices[ i++ ] = m_heightPlane[ x ][ y - 1 ];
+        m_vertices[ i++ ] = (y * HP_GRIDSIZE) ;
+        i += 3;
+        m_vertices[ i++ ] = texIdx;
+        m_vertices[ i++ ] = 0.0;
+
+        a = { m_vertices[ j + 0 ], m_vertices[ j + 0 + 1 ], m_vertices[ j + 0 + 2 ] };
+        b = { m_vertices[ j + 8 ], m_vertices[ j + 8 + 1 ], m_vertices[ j + 8 + 2 ] };
+        c = { m_vertices[ j +16 ], m_vertices[ j +16 + 1 ], m_vertices[ j +16 + 2 ] };
+        glm::vec3 normalB = glm::normalize( glm::cross( c - a, b - a ) );
+        m_vertices[ j + 24 + 3 + 0 ] = m_vertices[ j + 24 + 11 + 0 ] = m_vertices[ j + 24 + 19 + 0 ] = normalB.x;
+        m_vertices[ j + 24 + 3 + 1 ] = m_vertices[ j + 24 + 11 + 1 ] = m_vertices[ j + 24 + 19 + 1 ] = normalB.y;
+        m_vertices[ j + 24 + 3 + 2 ] = m_vertices[ j + 24 + 11 + 2 ] = m_vertices[ j + 24 + 19 + 2 ] = normalB.z;
+#if 0
+
+/*
+				m_vertices[ j + 3 + 0 ] = ( normalA.x + m_vertices[ k + 24 + 3 + 0 ] ) / 2;
+				m_vertices[ j + 3 + 1 ] = ( normalA.y + m_vertices[ k + 24 + 3 + 1 ] ) / 2;
+				m_vertices[ j + 3 + 2 ] = ( normalA.z + m_vertices[ k + 24 + 3 + 2 ] ) / 2;
+*/
+
+
+/*
+				m_vertices[ j + 24 + 3 + 0 ] = ( normalB.x + normalA.x ) / 2;
+				m_vertices[ j + 24 + 3 + 1 ] = ( normalB.y + normalA.y ) / 2;
+				m_vertices[ j + 24 + 3 + 2 ] = ( normalB.z + normalA.z ) / 2;
+*/
+				m_vertices[ j + 3 + 0 ] = m_vertices[ j + 32 + 3 + 0 ] = ( normalB.x + m_vertices[ k + 40 + 3 + 0 ] + m_vertices[ l + 16 + 3 + 0 ]  ) / 3;
+				m_vertices[ j + 3 + 1 ] = m_vertices[ j + 32 + 3 + 0 ] = ( normalB.y + m_vertices[ k + 40 + 3 + 1 ] + m_vertices[ l + 16 + 3 + 1 ]  ) / 3;
+				m_vertices[ j + 3 + 2 ] = m_vertices[ j + 32 + 3 + 0 ] = ( normalB.z + m_vertices[ k + 40 + 3 + 2 ] + m_vertices[ l + 16 + 3 + 2 ]  ) / 3;
+
+				m_vertices[ j + 16 + 3 + 0 ] = ( normalB.x + m_vertices[ k + 16 + 3 + 0 ] ) / 2;
+				m_vertices[ j + 16 + 3 + 1 ] = ( normalB.y + m_vertices[ k + 16 + 3 + 1 ] ) / 2;
+				m_vertices[ j + 16 + 3 + 2 ] = ( normalB.z + m_vertices[ k + 16 + 3 + 2 ] ) / 2;
+
+				m_vertices[ j + 40 + 3 + 0 ] = ( normalB.x + m_vertices[ l + 48 + 16 + 3 + 0 ] ) / 2;
+				m_vertices[ j + 40 + 3 + 1 ] = ( normalB.y + m_vertices[ l + 48 + 16 + 3 + 1 ] ) / 2;
+				m_vertices[ j + 40 + 3 + 2 ] = ( normalB.z + m_vertices[ l + 48 + 16 + 3 + 2 ] ) / 2;
+
+				m_vertices[ l + 8 + 3 + 0 ] = ( normalA.x + m_vertices[ l + 8 + 3 + 0 ] ) / 2;
+				m_vertices[ l + 8 + 3 + 1 ] = ( normalA.y + m_vertices[ l + 8 + 3 + 1 ] ) / 2;
+				m_vertices[ l + 8 + 3 + 2 ] = ( normalA.z + m_vertices[ l + 8 + 3 + 2 ] ) / 2;
+
+				m_vertices[ l + 24 + 3 + 0 ] = ( normalB.x + m_vertices[ l + 24 + 3 + 0 ] ) / 2;
+				m_vertices[ l + 24 + 3 + 1 ] = ( normalB.y + m_vertices[ l + 24 + 3 + 1 ] ) / 2;
+				m_vertices[ l + 24 + 3 + 2 ] = ( normalB.z + m_vertices[ l + 24 + 3 + 2 ] ) / 2;
+
+
+				//m_vertices[ j + 3 + 1 ] = ( normal.y + m_vertices[ k + 24 + 3 + 1 ] ) / 2;
+				//m_vertices[ j + 3 + 2 ] = ( normal.z + m_vertices[ k + 24 + 3 + 2 ] ) / 2;
+#endif
+
+
       }
     }
   }
@@ -157,6 +219,56 @@ bool HeightPlane::initHeightPlane()
   return bRet;
 }
 
+void HeightPlane::normalizeHeightPlane()
+{
+	int a, b, l, r, i, x, y;
+	i = 0;
+	return;
+  for( y = 0; y < HP_YSIZE; y++ ) {
+    for( x = 0; x < HP_XSIZE; x++ ) {
+			if( x == 0 || x == HP_XSIZE - 1 || y == 0 || y == HP_YSIZE - 1 ) {
+				continue;
+			}
+				// Vertice-index arrangement:
+				// TL-A:00
+				// BL-A:16   BR-A:08a
+				//
+				// TL-B:00   TR-B:40
+				//           BR-B:24
+				i = ( x * 8 * 6 ) + ( y * HP_XSIZE * 8 * 6 );
+				a = i - HP_XSIZE * 8 * 6 ;
+				b = i + HP_XSIZE * 8 * 6 ;
+				l = i - 8 * 6;
+				r = i + 8 * 6;
+
+				glm::vec3 normalA = { 0, 0, 0 };
+				glm::vec3 normalB = { 0, 0, 0 };
+        int j = i;    // for convenience
+        int k = i > 48 ? i - 48 : i;    // for convenience
+				int l = ( y > 2 ) ? ( j - HP_XSIZE * 8 * 6 ) : j;
+
+				m_vertices[ j + 3 + 0 ] = m_vertices[ j + 32 + 3 + 0 ] = ( normalB.x + m_vertices[ k + 40 + 3 + 0 ] + m_vertices[ l + 16 + 3 + 0 ]  ) / 3;
+				m_vertices[ j + 3 + 1 ] = m_vertices[ j + 32 + 3 + 0 ] = ( normalB.y + m_vertices[ k + 40 + 3 + 1 ] + m_vertices[ l + 16 + 3 + 1 ]  ) / 3;
+				m_vertices[ j + 3 + 2 ] = m_vertices[ j + 32 + 3 + 0 ] = ( normalB.z + m_vertices[ k + 40 + 3 + 2 ] + m_vertices[ l + 16 + 3 + 2 ]  ) / 3;
+
+				m_vertices[ j + 16 + 3 + 0 ] = ( normalB.x + m_vertices[ k + 16 + 3 + 0 ] ) / 2;
+				m_vertices[ j + 16 + 3 + 1 ] = ( normalB.y + m_vertices[ k + 16 + 3 + 1 ] ) / 2;
+				m_vertices[ j + 16 + 3 + 2 ] = ( normalB.z + m_vertices[ k + 16 + 3 + 2 ] ) / 2;
+
+				m_vertices[ j + 40 + 3 + 0 ] = ( normalB.x + m_vertices[ l + 48 + 16 + 3 + 0 ] ) / 2;
+				m_vertices[ j + 40 + 3 + 1 ] = ( normalB.y + m_vertices[ l + 48 + 16 + 3 + 1 ] ) / 2;
+				m_vertices[ j + 40 + 3 + 2 ] = ( normalB.z + m_vertices[ l + 48 + 16 + 3 + 2 ] ) / 2;
+
+				m_vertices[ l + 8 + 3 + 0 ] = ( normalA.x + m_vertices[ l + 8 + 3 + 0 ] ) / 2;
+				m_vertices[ l + 8 + 3 + 1 ] = ( normalA.y + m_vertices[ l + 8 + 3 + 1 ] ) / 2;
+				m_vertices[ l + 8 + 3 + 2 ] = ( normalA.z + m_vertices[ l + 8 + 3 + 2 ] ) / 2;
+
+				m_vertices[ l + 24 + 3 + 0 ] = ( normalB.x + m_vertices[ l + 24 + 3 + 0 ] ) / 2;
+				m_vertices[ l + 24 + 3 + 1 ] = ( normalB.y + m_vertices[ l + 24 + 3 + 1 ] ) / 2;
+				m_vertices[ l + 24 + 3 + 2 ] = ( normalB.z + m_vertices[ l + 24 + 3 + 2 ] ) / 2;
+    }
+  }
+}
 
 // TODO: Move this to a vector math lib
 glm::vec3 crossProduct( const glm::vec3 v1,  const glm::vec3 v2 )

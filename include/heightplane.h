@@ -38,6 +38,7 @@ class HeightPlane : public GameObject
 
   protected:
     bool initHeightPlane();
+    void normalizeHeightPlane();
     double heightFn(double, double);
 
     float m_heightPlane[ HP_XSIZE ][ HP_YSIZE ];

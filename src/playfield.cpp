@@ -32,6 +32,7 @@ bool Playfield::init()
   bool bRet = true;
   if( m_heightPlane ) {
     initHeightPlane();
+    normalizeHeightPlane();
   }
   return bRet;
 }
