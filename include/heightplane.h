@@ -38,10 +38,10 @@ class HeightPlane : public GameObject
 
   protected:
     bool initHeightPlane();
-    void normalizeHeightPlane();
+    void smoothNormals();
     double heightFn(double, double);
 
-    float m_heightPlane[ HP_XSIZE ][ HP_YSIZE ];
+    float (*m_heightPlane)[ (HP_YSIZE + 2) ];
     float calcZ(const glm::vec3 p1, const glm::vec3 p2, const glm::vec3 p3, const float x, const float y);
 
     int m_param[ HP_MAX_PARAMS ];
