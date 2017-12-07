@@ -93,6 +93,12 @@ bool HeightPlane::initHeightPlane()
         m_vertices[ i++ ] = 0.0;
         m_vertices[ i++ ] = 0.0;
 
+        m_vertices[ i++ ] = (x * HP_GRIDSIZE)  + HP_GRIDSIZE;
+        m_vertices[ i++ ] = m_heightPlane[ x ][ y ];
+        m_vertices[ i++ ] = (y * HP_GRIDSIZE)  + HP_GRIDSIZE;
+        m_vertices[ i++ ] = texIdx;
+        m_vertices[ i++ ] = texIdx;
+
         m_vertices[ i++ ] = (x * HP_GRIDSIZE) ;
         m_vertices[ i++ ] = m_heightPlane[ x - 1 ][ y ];
         m_vertices[ i++ ] = (y * HP_GRIDSIZE)  + HP_GRIDSIZE;
@@ -106,21 +112,15 @@ bool HeightPlane::initHeightPlane()
         m_vertices[ i++ ] = texIdx;
 
         m_vertices[ i++ ] = (x * HP_GRIDSIZE)  + HP_GRIDSIZE;
-        m_vertices[ i++ ] = m_heightPlane[ x ][ y ];
-        m_vertices[ i++ ] = (y * HP_GRIDSIZE)  + HP_GRIDSIZE;
+        m_vertices[ i++ ] = m_heightPlane[ x ][ y - 1 ];
+        m_vertices[ i++ ] = (y * HP_GRIDSIZE) ;
         m_vertices[ i++ ] = texIdx;
-        m_vertices[ i++ ] = texIdx;
+        m_vertices[ i++ ] = 0.0;
 
         m_vertices[ i++ ] = (x * HP_GRIDSIZE) ;
         m_vertices[ i++ ] = m_heightPlane[ x - 1 ][ y - 1];
         m_vertices[ i++ ] = (y * HP_GRIDSIZE) ;
         m_vertices[ i++ ] = 0.0;
-        m_vertices[ i++ ] = 0.0;
-
-        m_vertices[ i++ ] = (x * HP_GRIDSIZE)  + HP_GRIDSIZE;
-        m_vertices[ i++ ] = m_heightPlane[ x ][ y - 1 ];
-        m_vertices[ i++ ] = (y * HP_GRIDSIZE) ;
-        m_vertices[ i++ ] = texIdx;
         m_vertices[ i++ ] = 0.0;
 
         if( texIdx > 0 ) {
@@ -427,9 +427,6 @@ glm::vec3 HeightPlane::getNormalAt( const float fx, const float fy )
   }
   return cp;
 }
-
-
-
 
 // calcZ
 // Use Barycentric coordinate algorithm to derive z from y on heightplane triangle
