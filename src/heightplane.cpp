@@ -29,7 +29,7 @@ HeightPlane::HeightPlane()
 
 	// int(*ary)[sizeX] = new int[sizeY][sizeX];
 
-	m_heightPlane = new float[ HP_XSIZE + 2 ][ HP_YSIZE + 2 ];
+	m_heightPlane = new float[ HP_XSIZE ][ HP_YSIZE ];
 }
 
 HeightPlane::~HeightPlane()
@@ -72,51 +72,71 @@ bool HeightPlane::initHeightPlane()
 	int i = 0;
 	double h = 0;
 
-	for( y = 0; y < HP_YSIZE; y++ ) {
-		for( x = 0; x < HP_XSIZE; x++ ) {
+	// We allocate a slightly larger temporary buffer to satisfy
+	// the (literal) edge conditions of vertice generation.
+	// We then copy this buffer minus 1-unit border around the edges into
+	// m_heightPlane.
+	float (*pHp)[ HP_YSIZE + 2 ] = new float[ HP_XSIZE + 2 ][ HP_YSIZE + 2 ];
+
+	for( y = 0; y < HP_YSIZE + 2; y++ ) {
+		for( x = 0; x < HP_XSIZE + 2; x++ ) {
 			h = heightFn(x, y);
 			if( x > 0 ) {
-				h += 100.0 / (HP_XSIZE - x );
+				h += 100.0 / (HP_XSIZE + 2 - x );
 				h += 100.0 / x;
 			}
 			if( y > 0 ) {
-				h += 100.0 / (HP_YSIZE - y );
+				h += 100.0 / (HP_YSIZE + 2 - y );
 				h += 100.0 / y;
 			}
 
-			m_heightPlane[ x ][ y ] = h * 1.0;
+			pHp[ x ][ y ] = h * 1.0;
 
 			if(
 					!(
 						( !x ) ||
 						( !y ) ||
-						(HP_XSIZE - 1 ) == x ||
-						(HP_YSIZE - 1 ) == y
+						( HP_XSIZE + 1 ) <= x ||
+						( HP_YSIZE + 1 ) <= y
 					 )
 				) {
 
+				// NOTE: All this vertice stuff needs to be encapsulated into its own mesh class
+				// Adjust model to it's actual final world position
+				float xv = ( x - 1 ) * HP_GRIDSIZE;
+				float zv = ( y - 1 ) * HP_GRIDSIZE;
+
+				// Tile mapping
+				unsigned int tile = ( unsigned int ) rand() % ( unsigned int ) 0x00ff;
+				float txs = ( float ) ( tile & 0x0f ) / 16.0;
+				float tys = ( float ) ( ( tile >> 4 ) & 0x0f ) / 16.0;
+				float txe = ( float ) ( (txs + 1.0 / 16.0));
+				float tye = ( float ) ( (tys + 1.0 / 16.0));
+
+				//cout << txs << " " <<tys << " " <<txe << " " <<tye << " " << std::endl;
+
 				// Face A  - TOP LEFT HALF
 				int j = i;    // for convenience
-				m_vertices[ i++ ] = (x * HP_GRIDSIZE) ;
-				m_vertices[ i++ ] = m_heightPlane[ x - 1 ][ y - 1 ];
-				m_vertices[ i++ ] = (y * HP_GRIDSIZE) ;
-				i += 3;   // skip normal (computed after face)
-				m_vertices[ i++ ] = 0.0;
-				m_vertices[ i++ ] = 0.0;
+				m_vertices[ i++ ] = xv;
+				m_vertices[ i++ ] = pHp[ x - 1 ][ y - 1 ];
+				m_vertices[ i++ ] = zv;
+				i += 3;   // skip normal (computed after vertice generation), but leave space
+				m_vertices[ i++ ] = txs;
+				m_vertices[ i++ ] = tys;
 
-				m_vertices[ i++ ] = (x * HP_GRIDSIZE)  + HP_GRIDSIZE;
-				m_vertices[ i++ ] = m_heightPlane[ x ][ y - 1 ];
-				m_vertices[ i++ ] = (y * HP_GRIDSIZE) ;
+				m_vertices[ i++ ] = xv  + HP_GRIDSIZE;
+				m_vertices[ i++ ] = pHp[ x ][ y - 1 ];
+				m_vertices[ i++ ] = zv;
 				i += 3;
-				m_vertices[ i++ ] = texIdx;
-				m_vertices[ i++ ] = 0.0;
+				m_vertices[ i++ ] = txe;
+				m_vertices[ i++ ] = tys;
 
-				m_vertices[ i++ ] = (x * HP_GRIDSIZE) ;
-				m_vertices[ i++ ] = m_heightPlane[ x - 1 ][ y ];
-				m_vertices[ i++ ] = (y * HP_GRIDSIZE)  + HP_GRIDSIZE;
+				m_vertices[ i++ ] = xv;
+				m_vertices[ i++ ] = pHp[ x - 1 ][ y ];
+				m_vertices[ i++ ] = zv + HP_GRIDSIZE;
 				i += 3;
-				m_vertices[ i++ ] = 0.0;
-				m_vertices[ i++ ] = texIdx;
+				m_vertices[ i++ ] = txs;
+				m_vertices[ i++ ] = tye;
 
 				glm::vec3 a = { m_vertices[ j + 0 ], m_vertices[ j + 0 + 1 ], m_vertices[ j + 0 + 2 ] };
 				glm::vec3 b = { m_vertices[ j + 8 ], m_vertices[ j + 8 + 1 ], m_vertices[ j + 8 + 2 ] };
@@ -130,26 +150,26 @@ bool HeightPlane::initHeightPlane()
 
 				// Face  B - BOTTOM RIGHT HALF
 				j = i;    // for convenience
-				m_vertices[ i++ ] = (x * HP_GRIDSIZE)  + HP_GRIDSIZE;
-				m_vertices[ i++ ] = m_heightPlane[ x ][ y ];
-				m_vertices[ i++ ] = (y * HP_GRIDSIZE)  + HP_GRIDSIZE;
+				m_vertices[ i++ ] = xv  + HP_GRIDSIZE;
+				m_vertices[ i++ ] = pHp[ x ][ y ];
+				m_vertices[ i++ ] = zv  + HP_GRIDSIZE;
 				i += 3;
-				m_vertices[ i++ ] = texIdx;
-				m_vertices[ i++ ] = texIdx;
+				m_vertices[ i++ ] = txe;
+				m_vertices[ i++ ] = tye;
 
-				m_vertices[ i++ ] = (x * HP_GRIDSIZE) ;
-				m_vertices[ i++ ] = m_heightPlane[ x - 1 ][ y ];
-				m_vertices[ i++ ] = (y * HP_GRIDSIZE)  + HP_GRIDSIZE;
+				m_vertices[ i++ ] = xv;
+				m_vertices[ i++ ] = pHp[ x - 1 ][ y ];
+				m_vertices[ i++ ] = zv + HP_GRIDSIZE;
 				i += 3;
-				m_vertices[ i++ ] = 0.0;
-				m_vertices[ i++ ] = texIdx;
+				m_vertices[ i++ ] = txs;
+				m_vertices[ i++ ] = tye;
 
-				m_vertices[ i++ ] = (x * HP_GRIDSIZE)  + HP_GRIDSIZE;
-				m_vertices[ i++ ] = m_heightPlane[ x ][ y - 1 ];
-				m_vertices[ i++ ] = (y * HP_GRIDSIZE) ;
+				m_vertices[ i++ ] = xv + HP_GRIDSIZE;
+				m_vertices[ i++ ] = pHp[ x ][ y - 1 ];
+				m_vertices[ i++ ] = zv;
 				i += 3;
-				m_vertices[ i++ ] = texIdx;
-				m_vertices[ i++ ] = 0.0;
+				m_vertices[ i++ ] = txe;
+				m_vertices[ i++ ] = tys;
 
 				a = { m_vertices[ j + 0 ], m_vertices[ j + 0 + 1 ], m_vertices[ j + 0 + 2 ] };
 				b = { m_vertices[ j + 8 ], m_vertices[ j + 8 + 1 ], m_vertices[ j + 8 + 2 ] };
@@ -160,10 +180,9 @@ bool HeightPlane::initHeightPlane()
 				m_vertices[ j + 3 + 0 ] = m_vertices[ j + 11 + 0 ] = m_vertices[ j + 19 + 0 ] = normalB.x;
 				m_vertices[ j + 3 + 1 ] = m_vertices[ j + 11 + 1 ] = m_vertices[ j + 19 + 1 ] = normalB.y;
 				m_vertices[ j + 3 + 2 ] = m_vertices[ j + 11 + 2 ] = m_vertices[ j + 19 + 2 ] = normalB.z;
-
-
 			}
 		}
+		// cout << i / 48 / HP_XSIZE << std::endl;
 	}
 
 	// Offset the height plane by 1x, 1y:
@@ -172,13 +191,14 @@ bool HeightPlane::initHeightPlane()
 	// xxxxxxxxxxxx.
 	// xxxxxxxxxxxx.
 	//  ............
-	for( x = HP_XSIZE - 1; x > 0; x-- ) {
-		for( y = HP_YSIZE - 1; y > 0 ; y-- ) {
-			m_heightPlane[ x ][ y ] = m_heightPlane[ x - 1 ][ y - 1 ];
+	for( y = 0; y < HP_YSIZE ; y++ ) {
+		for( x = 0; x < HP_XSIZE ; x++ ) {
+			m_heightPlane[ x ][ y ] = pHp[ x  ][ y  ];
 		}
 	}
+	delete pHp;
 
-	std::cout << i << " " << i / 30 << " " << sqrt( i / 30 ) <<  std::endl;
+	std::cout << i << " " << i / 5 << " " << i / 8 <<   std::endl;
 
 	m_verticeTot = i / 5;
 	return bRet;
@@ -189,12 +209,12 @@ bool HeightPlane::initHeightPlane()
 // 
 void HeightPlane::smoothNormals()
 {
-// Surface Normal
+	// Surface Normal
 #define SN_X(a) src[a + 3 + 0]
 #define SN_Y(a) src[a + 3 + 1]
 #define SN_Z(a) src[a + 3 + 2]
 
-// Surface Normal Destination
+	// Surface Normal Destination
 #define SND_X(a) m_vertices[a + 3 + 0]
 #define SND_Y(a) m_vertices[a + 3 + 1]
 #define SND_Z(a) m_vertices[a + 3 + 2]
@@ -229,8 +249,8 @@ void HeightPlane::smoothNormals()
 			// TL-B:32   TR-B:40
 			//           BR-B:24
 			i = ( x * 8 * 6 ) + ( y * HP_XSIZE * 8 * 6 );
-			a = i - ( HP_XSIZE - 2 ) * 8 * 6 ;										// above
-			b = i + ( HP_XSIZE - 2 ) * 8 * 6 ;										// below
+			a = i - ( HP_XSIZE ) * 8 * 6 ;										// above
+			b = i + ( HP_XSIZE ) * 8 * 6 ;										// below
 			l = i - 8 * 6;																// left
 			r = i + 8 * 6;																// right
 
@@ -436,6 +456,10 @@ float HeightPlane::getHeightAt( const float fx, const float fy )
 	int y = (int) (fy / HP_GRIDSIZE);
 	if( x >= 0 && x < HP_XSIZE - 1 ) {
 		if( y >= 0 && y < HP_YSIZE - 1 ) {
+//#define NO_HEIGHT_INTERPOLATION
+#ifdef NO_HEIGHT_INTERPOLATION
+			return m_heightPlane[ x ][ y ];
+#endif
 			// Find which triangular half of the grid square { fx, fy } is in (top/right or bottom/left)
 			float ix, iy;
 			float ax, ay;

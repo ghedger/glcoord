@@ -55,7 +55,7 @@ unsigned int loadTexture( const char *path)
 	unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
 	if (data)
 	{
-		GLenum format;
+		GLenum format = GL_RGBA;
 		if (nrComponents == 1)
 			format = GL_RED;
 		else if (nrComponents == 3)
@@ -152,7 +152,7 @@ int main()
   glBindVertexArray(VAO);
   // GPH Stuff
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, g_pPlayfield->getVerticeBufSize(), g_pPlayfield->getVertices(), GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, g_pPlayfield->getVerticeBufSize(), g_pPlayfield->getVertices(), GL_DYNAMIC_DRAW);
 
   glBindVertexArray(VAO);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -175,7 +175,7 @@ int main()
   // load textures (we now use a utility function to keep the code more organized)
   // -----------------------------------------------------------------------------
   unsigned int diffuseMap, specularMap;
-  diffuseMap = loadTexture( "pattern.png");
+  diffuseMap = loadTexture( "tileset.png");
   specularMap = loadTexture( "pattern2.png");
 
   // shader configuration
@@ -196,12 +196,16 @@ int main()
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
 
+// TEST CODE; REMOVE
+		g_pPlayfield->test();
+// END TEST
+
     // input
     processInput(window);
 
     // render
     // ------
-    glClearColor(0.3f, 0.5f, 0.6f, 1.0f);
+    glClearColor(0.4f, 0.55f, 0.67f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // be sure to activate shader when setting uniforms/drawing objects
@@ -289,6 +293,16 @@ int main()
 //    float angle = 0.0f;
 //    model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
 //    lightingShader.setMat4("model", model);
+// TEST CODE; REMOVE
+#if 1
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  for( int y = 40; y < 60; y++ ) {
+		glBufferSubData( GL_ARRAY_BUFFER, g_pPlayfield->testOffset( y ) * sizeof(float), 20 * 6 * 8 * sizeof(float), g_pPlayfield->testGetRowPtr( y ) );
+	}
+  //glBufferData(GL_ARRAY_BUFFER, g_pPlayfield->getVerticeBufSize(), g_pPlayfield->getVertices(), GL_DYNAMIC_DRAW);
+#endif
+// END TEST
+
     glDrawArrays(GL_TRIANGLES, 0, g_pPlayfield->getVerticeTot());
 
 //    model = glm::translate(model, {0,0,-10}); //cubePositions[i]);
@@ -334,6 +348,7 @@ int main()
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
+	camera.saveOldPosition();
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 
@@ -351,6 +366,7 @@ void processInput(GLFWwindow *window)
   }
   glm::vec3 pos = camera.getPosition();
   pos.y = g_pPlayfield->getHeightAt( pos.x, pos.z ) + 0.5;
+//#define DEBUG_POSITION
 #ifdef DEBUG_POSITION
   printf( "%2.2f %2.2f %2.2f \n", pos.x, pos.y, pos.z );
 #endif
