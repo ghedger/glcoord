@@ -35,10 +35,6 @@ void Spherex::draw()
 		glDrawArrays(GL_TRIANGLES, 0, getVerticeTot());
 }
 
-#define D3DMXVECTOR3 glm::vec3
-#define D3DMX_PI M_PI
-
-
 bool Spherex::generate( const float radius, const int iFactor )
 {
 	bool bRet = true;
@@ -55,11 +51,11 @@ bool Spherex::generate( const float radius, const int iFactor )
 
 	for ( int j = 0; j < iFactor; j++ )
 	{
-		float theta = ( D3DMX_PI * j )/( iFactor );
+		float theta = ( M_PI * j )/( iFactor );
 		for( int i = 0; i < iFactor; i++ )
 		{
 			iPos = j * iFactor + i;
-			float phi = ( 2 * D3DMX_PI * i )/( iFactor );
+			float phi = ( 2 * M_PI * i )/( iFactor );
 			arrV[ iPos ][ 0 ] = ( float )( sin( theta ) * cos( phi ));
 			arrV[ iPos ][ 1 ] = ( float )( sin( theta ) * sin( phi ));
 			arrV[ iPos ][ 2 ] = ( float )( cos( theta ));
@@ -77,29 +73,29 @@ bool Spherex::generate( const float radius, const int iFactor )
 			else iNext = i +1;
 
 			iPos = ( j * iFactor * 6 ) + ( i * 6 );
-			m_vertices[ iPos ].position = D3DMXVECTOR3( arrV[ j * iFactor + i ][ 0 ], arrV[ j * iFactor + i ][ 1 ], arrV[ j * iFactor + i ][ 2 ] );
-			m_vertices[ iPos + 1 ].position = D3DMXVECTOR3( arrV[ j * iFactor + iNext ][ 0 ], arrV[ j * iFactor + iNext ][ 1 ], arrV[ j * iFactor + iNext ][ 2 ] );
+			m_vertices[ iPos ].position = glm::vec3( arrV[ j * iFactor + i ][ 0 ], arrV[ j * iFactor + i ][ 1 ], arrV[ j * iFactor + i ][ 2 ] );
+			m_vertices[ iPos + 1 ].position = glm::vec3( arrV[ j * iFactor + iNext ][ 0 ], arrV[ j * iFactor + iNext ][ 1 ], arrV[ j * iFactor + iNext ][ 2 ] );
 
 			if ( j  != iFactor -1 )
-				m_vertices[ iPos + 2 ].position = D3DMXVECTOR3( arrV[ ( ( j + 1 ) * iFactor ) + i ][ 0 ], arrV[ ( ( j + 1 ) * iFactor ) + i ][ 1 ], arrV[ ( ( j + 1 ) * iFactor ) + i ][ 2 ] );
+				m_vertices[ iPos + 2 ].position = glm::vec3( arrV[ ( ( j + 1 ) * iFactor ) + i ][ 0 ], arrV[ ( ( j + 1 ) * iFactor ) + i ][ 1 ], arrV[ ( ( j + 1 ) * iFactor ) + i ][ 2 ] );
 			else
-				m_vertices[ iPos + 2 ].position = D3DMXVECTOR3( 0, 0, -1 ); //Create a pseudo triangle fan for the last set of triangles
+				m_vertices[ iPos + 2 ].position = glm::vec3( 0, 0, -1 ); //Create a pseudo triangle fan for the last set of triangles
 
-			m_vertices[ iPos ].normal = D3DMXVECTOR3( m_vertices[ iPos ].position.x, m_vertices[ iPos ].position.y, m_vertices[ iPos ].position.z );
-			m_vertices[ iPos + 1 ].normal = D3DMXVECTOR3( m_vertices[ iPos + 1 ].position.x, m_vertices[ iPos + 1 ].position.y, m_vertices[ iPos + 1 ].position.z );
-			m_vertices[ iPos + 2 ].normal = D3DMXVECTOR3( m_vertices[ iPos + 2 ].position.x, m_vertices[ iPos + 2 ].position.y, m_vertices[ iPos + 2 ].position.z );
+			m_vertices[ iPos ].normal = glm::vec3( m_vertices[ iPos ].position.x, m_vertices[ iPos ].position.y, m_vertices[ iPos ].position.z );
+			m_vertices[ iPos + 1 ].normal = glm::vec3( m_vertices[ iPos + 1 ].position.x, m_vertices[ iPos + 1 ].position.y, m_vertices[ iPos + 1 ].position.z );
+			m_vertices[ iPos + 2 ].normal = glm::vec3( m_vertices[ iPos + 2 ].position.x, m_vertices[ iPos + 2 ].position.y, m_vertices[ iPos + 2 ].position.z );
 
-			m_vertices[ iPos + 3 ].position = D3DMXVECTOR3( m_vertices[ iPos + 2 ].position.x, m_vertices[ iPos + 2 ].position.y, m_vertices[ iPos + 2 ].position.z );
-			m_vertices[ iPos + 4 ].position = D3DMXVECTOR3( m_vertices[ iPos + 1 ].position.x, m_vertices[ iPos + 1 ].position.y, m_vertices[ iPos + 1 ].position.z );
+			m_vertices[ iPos + 3 ].position = glm::vec3( m_vertices[ iPos + 2 ].position.x, m_vertices[ iPos + 2 ].position.y, m_vertices[ iPos + 2 ].position.z );
+			m_vertices[ iPos + 4 ].position = glm::vec3( m_vertices[ iPos + 1 ].position.x, m_vertices[ iPos + 1 ].position.y, m_vertices[ iPos + 1 ].position.z );
 
 			if ( j  != iFactor - 1 )
-				m_vertices[ iPos + 5 ].position = D3DMXVECTOR3( arrV[ ( ( j + 1 ) * iFactor ) + iNext ][ 0 ], arrV[ ( ( j + 1 ) * iFactor ) + iNext ][ 1 ], arrV[ ( ( j + 1 ) * iFactor ) + iNext ][ 2 ] );
+				m_vertices[ iPos + 5 ].position = glm::vec3( arrV[ ( ( j + 1 ) * iFactor ) + iNext ][ 0 ], arrV[ ( ( j + 1 ) * iFactor ) + iNext ][ 1 ], arrV[ ( ( j + 1 ) * iFactor ) + iNext ][ 2 ] );
 			else
-				m_vertices[ iPos + 5 ].position = D3DMXVECTOR3( 0,0,-1 );
+				m_vertices[ iPos + 5 ].position = glm::vec3( 0,0,-1 );
 
-			m_vertices[ iPos + 3 ].normal = D3DMXVECTOR3( m_vertices[ iPos + 3 ].position.x, m_vertices[ iPos + 3 ].position.y, m_vertices[ iPos + 3 ].position.z );
-			m_vertices[ iPos + 4 ].normal = D3DMXVECTOR3( m_vertices[ iPos + 4 ].position.x, m_vertices[ iPos + 4 ].position.y, m_vertices[ iPos + 4 ].position.z );
-			m_vertices[ iPos + 5 ].normal = D3DMXVECTOR3( m_vertices[ iPos + 5 ].position.x, m_vertices[ iPos + 5 ].position.y, m_vertices[ iPos + 5 ].position.z );
+			m_vertices[ iPos + 3 ].normal = glm::vec3( m_vertices[ iPos + 3 ].position.x, m_vertices[ iPos + 3 ].position.y, m_vertices[ iPos + 3 ].position.z );
+			m_vertices[ iPos + 4 ].normal = glm::vec3( m_vertices[ iPos + 4 ].position.x, m_vertices[ iPos + 4 ].position.y, m_vertices[ iPos + 4 ].position.z );
+			m_vertices[ iPos + 5 ].normal = glm::vec3( m_vertices[ iPos + 5 ].position.x, m_vertices[ iPos + 5 ].position.y, m_vertices[ iPos + 5 ].position.z );
 		}
 	}
 	return bRet;

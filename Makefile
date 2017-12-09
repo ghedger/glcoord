@@ -16,7 +16,7 @@ OBJEXT      := o
 
 #Flags, Libraries and Includes
 
-# SDL_CONFIG ?= sdl-config
+# SDL_CONFIG ?= sdl2-config
 # SDL_CFLAGS = $(shell $(SDL_CONFIG) --cflags)
 # SDL_LIBS = $(shell $(SDL_CONFIG) --libs)
 
@@ -24,16 +24,16 @@ OBJEXT      := o
 #CFLAGS      := -std=c++11 -Wall -O0 -g -pg -ggdb -ansi -c
 #LFLAGS      := -pg
 #DEBUGGING
-#CFLAGS      := -std=c++11 -Wall -O0 -g -ggdb -c
+CFLAGS      := -std=c++11 -Wall -O0 -g -ggdb -c
 #OPTIMIZED
-CFLAGS      := -std=c++11 -g -Wall -O3 -c
+#CFLAGS      := -std=c++11 -g -Wall -O3 -c
 CFLAGS 		+= $(SDL_CFLAGS)
 CFLAGS 		+= $(CURL_CFLAGS)
 
 # LIB	:= $(shell pkg-config --libs $(packages))
 
-LIB 				+= $(SDL_LIBS) $(CURL_LIBS) -lm -lpthread -lGL -lGLU -lglut -lglfw -ldl
-INC         := -I$(INCDIR) -I/usr/local/include
+LIB 				+= -L$(LD_LIBRARY_PATH) $(SDL_LIBS) $(CURL_LIBS) -lm -lpthread -lGL -lGLU -lglut -lglfw -ldl -lassimp
+INC         := -I$(INCDIR) -I$(CPATH) -I/usr/local/include
 INCDEP      := -I$(INCDIR)
 
 #---------------------------------------------------------------------------------
