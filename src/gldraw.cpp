@@ -86,6 +86,7 @@ unsigned int loadTexture( const char *path)
 // eventually live in a class.
 unsigned int VBO, VAO;
 unsigned int diffuseMap, specularMap;
+unsigned int renderedTexture;
 // positions of the point lights
 glm::vec3 pointLightPositions[] = {
 	glm::vec3( 30.7f,  20.2f,  89.0f),
@@ -94,15 +95,62 @@ glm::vec3 pointLightPositions[] = {
 	glm::vec3( 290.0f,  35.0f, -3.0f)
 };
 
-void render( glm::mat4 projection, glm::mat4 view, Shader shader )
+unsigned int FBO = 0;
+
+void render( glm::mat4 projection, glm::mat4 view, Shader shader, bool toBuffer )
 {
+	if( toBuffer )
+	{
+		// Do FBO stuff
+		if( !FBO ) {
+			std::cout << "INITIALIZING FBO..." << std::endl;
+			glGenFramebuffers( 1, &FBO );                     //Generate a framebuffer object(FBO)
+			glBindFramebuffer( GL_FRAMEBUFFER, FBO );         // and bind it to the pipeline
+
+			glGenTextures( 1, &renderedTexture );
+			glBindTexture( GL_TEXTURE_2D, renderedTexture );
+		}
+			unsigned width = 640, height = 480;
+
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0 );
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+			// The depth buffer
+			GLuint depthrenderbuffer;
+			glGenRenderbuffers(1, &depthrenderbuffer);
+			glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 768);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+
+			// Set "renderedTexture" as our colour attachement #0
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+			// (the below is optional)
+			//glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_depth, 0);//optional
+
+			// Set the list of draw buffers.
+			GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+			glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+			// Always check that our framebuffer is ok
+			if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+				cout << "A BAD THING HAPPENED, glError==" << glGetError() << std::endl;
+				return;
+		}
+		//fbo.bind();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+	} else {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
 	// render
-	// ------
 	glClearColor(0.4f, 0.55f, 0.67f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// shader configuration
-	// --------------------
 
 	// be sure to activate shader when setting uniforms/drawing objects
 	shader.use();
@@ -160,13 +208,16 @@ void render( glm::mat4 projection, glm::mat4 view, Shader shader )
 
 	shader.use();
 	glDrawArrays(GL_TRIANGLES, 0, g_pPlayfield->getVerticeTot());
+
+	if( toBuffer ) {
+		//fbo.unbind();
+	}
 }
 
 
 int main()
 {
 	// glfw: initialize and configure
-	// ------------------------------
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -177,7 +228,6 @@ int main()
 #endif
 
 	// glfw window creation
-	// --------------------
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Roller Ball Concept", NULL, NULL);
 	if (window == NULL)
 	{
@@ -193,7 +243,6 @@ int main()
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// glad: load all OpenGL function pointers
-	// ---------------------------------------
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -201,19 +250,17 @@ int main()
 	}
 
 	// configure global opengl state
-	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
 
 	// build and compile our shader zprogram
-	// ------------------------------------
 	Shader lightingShader("multilight.vs", "multilight.fs");
 	Shader lampShader("lamp.vs", "lamp.fs");
 	Shader reflectShader("reflect.vs", "reflect.fs");
+	//Shader reflectShader("multilight.vs", "multilight.fs");
 
 	// GPH Stuff
 	g_pPlayfield = new Playfield();
 	// End GPH
-
 
 #if 1
 	// first, configure the cube's VAO (and VBO)
@@ -245,7 +292,6 @@ int main()
 	glEnableVertexAttribArray(0);
 
 	// load textures (we now use a utility function to keep the code more organized)
-	// -----------------------------------------------------------------------------
 	diffuseMap = loadTexture( "tileset.png");
 	specularMap = loadTexture( "pattern2.png");
 #endif
@@ -257,8 +303,18 @@ int main()
 	//Model ourModel("nanosuit.obj");
 	Model ourModel("mirrorsphere.obj");
 	Model ourRobot("nanosuit.obj");
-	// render loop
-	// -----------
+
+	float ballX = 31.0;
+	float ballZ = 31.0;
+	float ballY = g_pPlayfield->getHeightAt( ballX, ballZ );
+
+	Camera cameraReflect(
+		glm::vec3(ballX, ballY, ballZ),
+		glm::vec3(0.0f, 1.0f, 0.0f),
+		M_PI + M_PI / 2
+	);
+
+	// Main game loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// per-frame time logic
@@ -281,16 +337,24 @@ int main()
 		// RENDER
 		//
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
 		glm::mat4 view = camera.GetViewMatrix();
 
-		render( projection, view, lightingShader );
+		cameraReflect.setPosition( glm::vec3( ballX, ballY, ballZ ) );
 
+		glm::mat4 projectionReflect = glm::perspective( ( float ) (M_PI - 0.001 ), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
+		glm::mat4 viewReflect = cameraReflect.GetViewMatrix();
 
-		// TEST MESH
+		// render the camera
+		render( projection, view, lightingShader, true);
+		render( projection, view, lightingShader, false);
 
 #if 1
-		reflectShader.use();
+		// TEST MESH
+//		lightingShader.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, renderedTexture);
+
 		static float mtheta = 0.0;
 		mtheta += 0.04;
 
@@ -303,28 +367,28 @@ int main()
 
 		//projection = glm::perspective(( float ) (M_PI - 0.000001), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-		normal = glm::perspective(( float ) (M_PI - 0.000001), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-		reflectShader.setMat4("projection2", projection);
-		reflectShader.setMat4("view2", view);
-		reflectShader.setMat4( "mNormal", normal );
-		reflectShader.setVec3( "uEye", camera.Position);
+		// normal = glm::perspective( ( float ) (M_PI / 2), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+#if 1
+		lightingShader.setMat4("projection", projection);
+		lightingShader.setMat4("view", view);
+		//lightingShader.setMat4( "mNormal", normal );
+		//lightingShader.setVec3( "uEye", camera.Position);
+#endif
 		glm::mat4 model2;
 		model2 = glm::translate(
 				model2,
 				glm::vec3(31.0f,
-					g_pPlayfield->getHeightAt(31.0, 31.0) + 3.0,
+					g_pPlayfield->getHeightAt(31.0, 31.0) + 1.0,
 					31.0)
-				);
-		model2 = glm::scale(model2, glm::vec3(3.0f, 3.0f, 3.0f));
+        );
+		model2 = glm::scale(model2, glm::vec3(2.0f, 2.0f, 2.0f));
 		model2 = glm::rotate(model2, mtheta, glm::vec3(1.0f, 0.0f, 0.0f));
 
-		reflectShader.setMat4("model2", model2);
-		ourModel.Draw(reflectShader);
-
+		lightingShader.setMat4("model", model2);
+		//lightingShader.setMat4("model", model2);
+		ourModel.Draw(lightingShader, renderedTexture);
 
 		// TEST ROBOT
-
 		lightingShader.use();
 		glm::mat4 model3;
 		//model2 = glm::scale(model2, glm::vec3(3.4f, 3.4f, 3.4f));
@@ -340,32 +404,24 @@ int main()
 		lightingShader.setMat4("model", model3);
 
 		ourRobot.Draw(lightingShader);
-
-
-
-
-
 #endif
+
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
 	// optional: de-allocate all resources once they've outlived their purpose:
-	// ------------------------------------------------------------------------
 	////glDeleteVertexArrays(1, &VAO);
 	////glDeleteVertexArrays(1, &lightVAO);
 	////glDeleteBuffers(1, &VBO);
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
-	// ------------------------------------------------------------------
 	glfwTerminate();
 	return 0;
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
 	camera.saveOldPosition();
