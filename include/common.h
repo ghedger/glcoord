@@ -19,4 +19,4 @@
 
 #define VBO_BUFSIZE ((HP_XSIZE) * (HP_YSIZE) * 6 * 8)
 
-
+#define EYE_HEIGHT 0.5

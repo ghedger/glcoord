@@ -46,6 +46,14 @@ class Model
         meshes[i].Draw(shader);
     }
 
+    // draws the model using a single custom texture
+    void Draw(Shader shader, unsigned int customTextureID)
+    {
+      for(unsigned int i = 0; i < meshes.size(); i++)
+        meshes[i].Draw(shader, customTextureID);
+    }
+
+
   private:
     /*  Functions   */
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
