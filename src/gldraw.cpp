@@ -25,8 +25,8 @@ void processInput(GLFWwindow *window);
 unsigned int loadTexture(const char *path);
 
 // settings
-const unsigned int SCR_WIDTH = 512;
-const unsigned int SCR_HEIGHT = 512;
+unsigned int SCR_WIDTH = 512;
+unsigned int SCR_HEIGHT = 512;
 float g_xpos = 30.0, g_ypos = 30.0, g_zpos = 0.0;
 float g_xyDir;
 
@@ -143,7 +143,7 @@ void render( glm::mat4 projection, glm::mat4 view, Shader shader, bool toBuffer 
       glGenTextures( 1, &renderedTexture );
       glBindTexture( GL_TEXTURE_2D, renderedTexture );
     }
-    unsigned width = 512, height = 512;
+    unsigned width = SCR_WIDTH, height = SCR_HEIGHT;
 
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0 );
 
@@ -332,7 +332,7 @@ int main()
   camera.setPosition( { 30.0, 0, 30.0 } );
 
   //Model ourModel("nanosuit.obj");
-  Model ourModel("mirrorsphere.obj");
+  Model ourModel("dome.obj");
   ourRobot = new Model("nanosuit.obj");
 
   float ballX = 21.0;
@@ -373,23 +373,50 @@ int main()
     // RENDER
     //
 
+    #if 1
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 200.0f);
-    glm::mat4 view = camera.GetViewMatrix();
+    #else
+    glm::mat4 projection = glm::ortho(
+      ( float ) 0.0f, // (SCR_WIDTH / 2 - SCR_WIDTH / 4),
+      ( float ) (SCR_WIDTH / 4),
+      ( float ) 0.0, //(SCR_HEIGHT / 2 - SCR_HEIGHT / 4 ),
+      ( float ) (SCR_HEIGHT / 4),
+      ( float ) 0.0f,
+      ( float ) 100.0f
+    );
+    #endif
+    //projection[0][0]= SCR_WIDTH / 2;
+    //projection[1][1]= SCR_HEIGHT / 2;
 
-    glm::vec3 delta = camera.getPosition() - cameraReflect.getPosition();
+		// TEMP CODE: Ball MOve
+		{
+			static float ballTheta = 0.0;
+
+  			ballX += ballTheta;
+				ballZ += ballTheta;
+  			ballY = g_pPlayfield->getHeightAt( ballX, ballZ ) + 0.5;
+				if( ballX > 192.0f || ballX < 8.0f ) {
+					ballTheta = -ballTheta;
+				}
+		}
+
+    glm::mat4 view = camera.GetViewMatrix();
+    //camera.setPitch( 0.0 );
+
+    glm::vec3 delta = cameraReflect.getPosition() - camera.getPosition();
     cameraReflect.setPosition( glm::vec3( ballX, ballY, ballZ ) );
     // Calculate angle to player eye position
     float yaw = atan2(
       ( double )( camera.getPosition().z - cameraReflect.getPosition().z ),
       ( double )( camera.getPosition().x - cameraReflect.getPosition().x )
-    ) * 180 / M_PI;
+    );
 
     // Calculate pitch
     double xzDelta = sqrt(
         ( double ) ( delta.x * delta.x ) +
         ( double ) ( delta.z * delta.z )
     );
-    //float pitch = atan2( ( double )delta.y, (double )xzDelta ) * 180.0 / M_PI;
+    float pitch = atan2( ( double )delta.y, (double )xzDelta );
 
     glm::vec3 normalSurface = { 1.0, 0.0, 0.0 };
 
@@ -398,14 +425,28 @@ int main()
     float dp = glm::dot(glm::normalize( delta ), normalSurface );
     glm::vec3 lookAt = (2 * dp) * normalSurface - glm::normalize( delta );
 
-    //cameraReflect.setYaw( yaw );
-    //cameraReflect.setPitch( pitch );
-
-
     cameraReflect.UpdateVectors();
-    glm::mat4 projectionReflect = glm::perspective( ( float ) ( M_PI / 2 ) /*glm::radians(cameraReflect.Zoom)*/, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 200.0f);
+    #if 1
+    glm::mat4 projectionReflect = glm::perspective( ( float ) ( M_PI / 2 + M_PI / 4 ) /*glm::radians(cameraReflect.Zoom)*/, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 200.0f);
+    #else
+    glm::mat4 projectionReflect = glm::ortho(
+      ( float ) 0.0f, // (SCR_WIDTH / 2 - SCR_WIDTH / 4),
+      ( float ) (SCR_WIDTH / 4),
+      ( float ) 0.0, //(SCR_HEIGHT / 2 - SCR_HEIGHT / 4 ),
+      ( float ) (SCR_HEIGHT / 4),
+      ( float ) 0.0f,
+      ( float ) 100.0f
+    );
+    #endif
     glm::mat4 viewReflect = cameraReflect.GetLookAtMatrix( lookAt );
-    glm::vec3 eye = { camera.Position.x, camera.Position.y, camera.Position.z };
+    glm::vec3 eyeReflect = { camera.Position.x - ballX, camera.Position.y - ballY, camera.Position.z - ballZ };
+    //glm::vec3 eyeReflect = { ballX - camera.Position.x , ballY - camera.Position.y, ballZ - camera.Position.z};
+
+		glm::mat4 mult = {1.0,0.0,0.0,1.0,
+			0.0,-1.0,0.0,1.0,
+			0.0,0.0,1.0,1.0,
+			1.0,1.0,1.0,1.0};
+		//viewReflect = viewReflect * mult;
 
 #if 1
     glm::mat4 normal = {
@@ -415,15 +456,24 @@ int main()
       0.0, 0.0, 0.0, 1.0
     };
 
+    glm::mat4 modelReflect;
     reflectShader.use();
     reflectShader.setMat4( "mNormal", normal );
-    reflectShader.setVec3( "uEye", eye);
+    reflectShader.setVec3( "uEye", eyeReflect);
+    reflectShader.setMat4( "projection", projectionReflect);
+    reflectShader.setMat4( "view", viewReflect);
+    reflectShader.setMat4( "model", modelReflect);
 #endif
 
-    // render the camera
+    // render the SEM for projection onto ball
     // render( projectionReflect, viewReflect, lightingShader, false);
-    render( projectionReflect, viewReflect, reflectShader, true);
+static int debugShader = 0;
+		debugShader++;
+
+    render( projectionReflect, viewReflect, ( debugShader & 0x40 ) ? reflectShader : lightingShader, true);
     glFlush();
+
+    // Render the view
     render( projection, view, lightingShader, false);
 
 #if 1
@@ -436,21 +486,16 @@ int main()
     //mtheta += 0.04;
 
 #if 0
-    glm::mat4 normal = {1.0, 0.0, 0.0, 1.0,
-      0.0, 1.0, 0.0, 1.0,
-      0.0, 0.0, 1.0, 1.0,
-      0.0, 0.0, 0.0, 1.0
-    };
     //peye = normalize(mp.xyz - eye);
 
     //projection = glm::perspective(( float ) (M_PI - 0.000001), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
     // normal = glm::perspective( ( float ) (M_PI / 2), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-    reflectShader.setMat4("projection2", projection);
-    reflectShader.setMat4("view2", view);
+    reflectShader.setMat4("projection", projection);
+    reflectShader.setMat4("view", view);
     reflectShader.setMat4( "mNormal", normal );
-    //reflectShader.setVec3( "uEye", camera.Position);
+    reflectShader.setVec3( "uEye", eye);
     glm::mat4 model2;
     model2 = glm::translate(
         model2,
@@ -461,10 +506,15 @@ int main()
     model2 = glm::scale(model2, glm::vec3(2.0f, 2.0f, 2.0f));
     model2 = glm::rotate(model2, mtheta, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    reflectShader.setMat4("model2", model2);
+    reflectShader.setMat4("model", model2);
     //reflectShader.setMat4("model", model2);
     ourModel.Draw(reflectShader, renderedTexture);
 #else
+
+		// DRAW RENDERED SEM BALL
+
+  	glActiveTexture(renderedTexture);
+		lightingShader.use();
     lightingShader.setMat4("projection", projection);
     lightingShader.setMat4("view", view);
     //lightingShader.setMat4( "mNormal", normal );
@@ -477,7 +527,19 @@ int main()
           ballZ)
         );
     //model2 = glm::scale(model2, glm::vec3(2.0f, 2.0f, 2.0f));
-    model2 = glm::rotate(model2, ( float ) (M_PI), glm::vec3(1.0f, 0.0f, 0.0f));
+    //model2 = glm::rotate(model2, ( float ) (-M_PI / 2.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    //model2 = glm::rotate(model2, ( float ) (-M_PI / 2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		glm::vec3 vRotate = {
+			1.0,
+			0,
+		  0
+		};
+		vRotate = glm::normalize( vRotate );
+
+		model2 = glm::rotate(model2, ( float ) ( ( -yaw ) + M_PI / 4 ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+		model2 = glm::rotate(model2, ( float ) ( pitch ), vRotate );
+		//model2 = glm::rotate(model2, ( float ) ( M_PI ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
 
     lightingShader.setMat4("model", model2);
     //lightingShader.setMat4("model", model2);
@@ -560,6 +622,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
   // make sure the viewport matches the new window dimensions; note that width and 
   // height will be significantly larger than specified on retina displays.
   glViewport(0, 0, width, height);
+	SCR_WIDTH = width;
+	SCR_HEIGHT = height;
 }
 
 

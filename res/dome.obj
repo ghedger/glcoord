@@ -1,6 +1,6 @@
 # Blender v2.76 (sub 0) OBJ File: 'dome.blend'
 # www.blender.org
-mtllib grid.mtl
+mtllib dome.mtl
 o Sphere
 v -0.195090 0.000000 0.980785
 v -0.382683 0.000000 0.923880

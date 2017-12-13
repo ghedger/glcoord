@@ -1,6 +1,9 @@
 #version 330 core
 precision mediump float;
 
+// function prototypes
+vec2 matcap(vec3 eye, vec3 normal);
+
 out vec4 FragColor;
 
 uniform sampler2D uTexture;
@@ -35,4 +38,19 @@ vec2 matcap(vec3 eye, vec3 normal) {
   float m = 2.8284271247461903 * sqrt( reflected.z+1.0 );
   return reflected.xy / m + 0.5;
 }
+
+/*
+uniform sampler2D texture; // the matcap texture you want to use
+uniform vec3 eyeVector;
+varying vec3 normalVector;
+
+void main() {
+  vec2 uv = matcap(eyeVector, normalVector);
+
+  gl_FragColor = vec4(texture2D(
+    texture, uv
+  ).rgb, 1.0);
+}
+
+*/
 
