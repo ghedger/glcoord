@@ -7,6 +7,7 @@ precision mediump float;
 
 varying vec3 vNormal;
 varying vec3 vEye;
+varying vec2 vN;
 
 out vec3 FragPos;
 out vec3 Normal;
@@ -19,12 +20,34 @@ uniform mat4 mNormal;
 uniform vec3 uEye;
 
 void main() {
+
+	vEye = uEye;
+  Normal = normalize((mNormal * vec4(aNormal, 0.0)).xyz);
+
+  vec4 p = vec4( aPos, 1.0 );
+  vec3 e = normalize( vec3( model * view * p ) );
+  vec3 n = normalize( aNormal );
+
+  vec3 r = reflect( e, n );
+  float m = 2.0 * sqrt(
+    pow( r.x, 2.0 ) +
+    pow( r.y, 2.0 ) +
+    pow( r.z + 1.0, 2.0 )
+  );
+  vN = r.xy / m + 0.5;
+
+
+	TexCoords = aTexCoords;
+
+	gl_Position = projection * model * view * p;
+	//gl_Position = projection * model * view * vec4(aPos, 1.0);
+
 /*
 	mat4 modelViewMatrix = model * view;
-  vec4 p = vec4( aPos, 1. );
+  vec4 p = vec4( aPos, 1.0 );
 
   vec3 e = normalize( vec3( modelViewMatrix * p ) );
-  vec3 n = normalize( normalMatrix * aNormal );
+  vec3 n = normalize( aNormal );
 
   vec3 r = reflect( e, n );
   float m = 2. * sqrt(
@@ -32,15 +55,15 @@ void main() {
     pow( r.y, 2. ) +
     pow( r.z + 1., 2. )
   );
-  vN = r.xy / m + .5;
+  vNormal = r.xy / m + .5;
 
 	Normal = vN;
-	FragPos = p;
 
   gl_Position = projectionMatrix * modelViewMatrix * p;
-
-
 */
+
+
+/*
   FragPos = vec3(model * vec4(aPos, 1.0));
 
   vec4 p = vec4( aPos, 1. );
@@ -51,6 +74,7 @@ void main() {
 
   gl_Position = projection * model * view * p;
   //gl_Position = projection * model * view * vec4(FragPos, 1.0);
+*/
 
 }
 

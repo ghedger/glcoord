@@ -142,9 +142,11 @@ class Camera
           break;
         case TURNLEFT:
           Yaw -= 45.0 * deltaTime;
+					Pitch *= 0.95;
           break;
         case TURNRIGHT:
           Yaw += 45.0 * deltaTime;
+					Pitch *= 0.95;
           break;
         case LEFT:
           Position -= Right * velocity;
