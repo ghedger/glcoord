@@ -1,3 +1,7 @@
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/bind.hpp>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -16,6 +20,8 @@
 #include "playfield.h"
 #include "camera.h"
 #include "sphere.h"
+
+#define TEST_TEXTURE
 
 // prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -45,6 +51,10 @@ float lastFrame = 0.0f;
 
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+// synchronization
+boost::mutex gl_mutex;
+
 
 unsigned int loadTexture( const char *path)
 {
@@ -87,6 +97,7 @@ unsigned int loadTexture( const char *path)
 // eventually live in a class.
 unsigned int VBO, VAO;
 unsigned int diffuseMap, specularMap;
+unsigned int testTexture;
 unsigned int renderedTexture;
 // positions of the point lights
 glm::vec3 pointLightPositions[] = {
@@ -132,6 +143,7 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
 {
   if( toBuffer )
   {
+    boost::mutex::scoped_lock lock(gl_mutex);
     // Init FBO context
     if( !FBO ) {
       std::cout << "INITIALIZING FBO..." << std::endl;
@@ -139,6 +151,7 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
       glBindFramebuffer( GL_FRAMEBUFFER, FBO );         // and bind it to the pipeline
 
       glGenTextures( 1, &renderedTexture );
+
       glBindTexture( GL_TEXTURE_2D, renderedTexture );
 
       unsigned width = SCR_WIDTH, height = SCR_HEIGHT;
@@ -331,13 +344,15 @@ int main()
   // load textures (we now use a utility function to keep the code more organized)
   diffuseMap = loadTexture( "tileset.png");
   specularMap = loadTexture( "pattern2.png");
+
+  testTexture = loadTexture( "test.png");
 #endif
 
   // Set start position
   camera.setPosition( { 56.0, 0, 54.0 } );
 
   // Model ourModel("nanosuit.obj");
-  Model ourModel("dome.obj");
+  Model ourModel("dome2.obj");
   ourRobot = new Model("nanosuit.obj");
 
   ballY = g_pPlayfield->getHeightAt( ballX, ballZ ) + 0.5;
@@ -405,21 +420,6 @@ int main()
       }
     }
 
-    glm::vec3 delta = cameraReflect.getPosition() - camera.getPosition();
-    cameraReflect.setPosition( glm::vec3( ballX, ballY, ballZ ) );
-    // Calculate angle to player eye position
-    float yaw = atan2(
-        ( double )( camera.getPosition().z - cameraReflect.getPosition().z ),
-        ( double )( camera.getPosition().x - cameraReflect.getPosition().x )
-        );
-
-    // Calculate pitch
-    double xzDelta = sqrt(
-        ( double ) ( delta.x * delta.x ) +
-        ( double ) ( delta.z * delta.z )
-        );
-    float pitch = atan2( ( double )delta.y, (double )xzDelta );
-
     glm::vec3 normalSurface = { 1.0, 0.0, 0.0 };
 
     // Calculate incidence:
@@ -431,7 +431,7 @@ int main()
     cameraReflect.UpdateVectors();
 #endif
 
-    glm::mat4 projectionReflect = glm::perspective( ( float ) ( M_PI / 2 ) /*glm::radians(cameraReflect.Zoom)*/, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, MAX_VIEWING_DISTANCE );
+    glm::mat4 projectionReflect = glm::perspective( ( float ) ( M_PI / 2 + M_PI / 4 ) /*glm::radians(cameraReflect.Zoom)*/, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, MAX_VIEWING_DISTANCE );
 
     glm::mat4 viewReflect = cameraReflect.GetLookAtMatrix( lookAt );
     glm::mat4 normal;
@@ -449,7 +449,24 @@ int main()
 
     // TEST MESH
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+    glBindTexture(GL_TEXTURE_2D, renderedTexture );
+
+
+    glm::vec3 delta = cameraReflect.getPosition() - camera.getPosition();
+    cameraReflect.setPosition( glm::vec3( ballX, ballY, ballZ ) );
+    // Calculate angle to player eye position
+    float yaw = atan2(
+        ( double )( camera.getPosition().z - cameraReflect.getPosition().z ),
+        ( double )( camera.getPosition().x - cameraReflect.getPosition().x )
+        );
+
+    // Calculate pitch
+    float sign = ( delta.x * delta.z < 0.0f ) ? -1.0f : 1.0f;
+    double xzDelta = sqrt(
+        ( double ) ( delta.x * delta.x ) +
+        ( double ) ( delta.z * delta.z )
+        );
+    float pitch = atan2( ( double )delta.y, (double )xzDelta );
 
     // DRAW RENDERED SEM BALL WITH NORMAL SHADER
     lightingShader.use();
@@ -462,10 +479,27 @@ int main()
           g_pPlayfield->getHeightAt(ballX, ballZ) + 0.5,
           ballZ)
         );
+#if 1
     model3 = glm::rotate(model3, ( float ) ( ( -yaw ) ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
-    model3 = glm::rotate(model3, ( float ) ( pitch ), glm::vec3( 1.0f, 0.0f, 0.0f ) );
+    model3 = glm::rotate(model3,
+        ( float ) ( -pitch ),
+          glm::vec3( -1.0f, 0.0f, 1.0f )
+        /*
+          glm::vec3(
+            ( float ) -delta.z,
+            ( float )  0.0,
+            ( float )  delta.x
+          )
+          */
+      );
+#endif
+      static int debug = 0x00;
+      debug++;
+      if( debug & 0x40 ) {
+        //model3 = glm::rotate(model3, ( float ) ( pitch ), glm::normalize(glm::vec3( delta.x, 0.0, delta.y ) ) );
+       }
     lightingShader.setMat4("model", model3);
-    ourModel.Draw( lightingShader, GL_TEXTURE2 );
+    ourModel.Draw( lightingShader, renderedTexture);
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     glfwSwapBuffers(window);
@@ -494,10 +528,10 @@ void processInput(GLFWwindow *window)
     glfwSetWindowShouldClose(window, true);
 
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-    camera.ProcessKeyboard(FORWARD, deltaTime);
+    camera.ProcessKeyboard( ctrlPressed ? PITCH_UP : FORWARD, deltaTime);
   }
   if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-    camera.ProcessKeyboard(BACKWARD, deltaTime);
+    camera.ProcessKeyboard( ctrlPressed ? PITCH_DOWN : BACKWARD, deltaTime);
   }
   if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
     camera.ProcessKeyboard( ctrlPressed ? LEFT : TURNLEFT, deltaTime);
@@ -507,7 +541,7 @@ void processInput(GLFWwindow *window)
   }
   glm::vec3 pos = camera.getPosition();
   pos.y = g_pPlayfield->getHeightAt( pos.x, pos.z ) + EYE_HEIGHT;
-#define DEBUG_POSITION
+//#define DEBUG_POSITION
 #ifdef DEBUG_POSITION
   printf( "%2.2f %2.2f %2.2f \n", pos.x, pos.y, pos.z );
 #endif
@@ -540,6 +574,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
   // make sure the viewport matches the new window dimensions; note that width and 
   // height will be significantly larger than specified on retina displays.
+  boost::mutex::scoped_lock lock(gl_mutex);
+  glDeleteBuffers( 1, &FBO );
+  FBO = 0;
+  glDeleteTextures( 1, &renderedTexture );
+
   glViewport(0, 0, width, height);
   SCR_WIDTH = width;
   SCR_HEIGHT = height;

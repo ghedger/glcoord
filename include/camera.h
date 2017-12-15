@@ -13,7 +13,9 @@ enum Camera_Movement {
   LEFT,
   RIGHT,
   TURNLEFT,
-  TURNRIGHT
+  TURNRIGHT,
+  PITCH_UP,
+  PITCH_DOWN
 };
 
 // Default camera values
@@ -22,6 +24,7 @@ const float PITCH      =  0.0f;
 const float SPEED      =  2.5f;
 const float SENSITIVTY =  0.1f;
 const float ZOOM       =  45.0f;
+const float PITCH_MAX  =  67.5f;
 
 
 // An abstract camera class that processes input and calculates the
@@ -142,11 +145,11 @@ class Camera
           break;
         case TURNLEFT:
           Yaw -= 45.0 * deltaTime;
-					Pitch *= 0.95;
+					Pitch *= 0.999;
           break;
         case TURNRIGHT:
           Yaw += 45.0 * deltaTime;
-					Pitch *= 0.95;
+					Pitch *= 0.999;
           break;
         case LEFT:
           Position -= Right * velocity;
@@ -154,6 +157,19 @@ class Camera
         case RIGHT:
           Position += Right * velocity;
           break;
+        case PITCH_UP:
+          if( Pitch < PITCH_MAX ) {
+            Pitch += 1.0;
+          }
+          break;
+        case PITCH_DOWN:
+          if( Pitch > -PITCH_MAX ) {
+            Pitch -= 1.0;
+          }
+ 
+          break;
+
+
         default:
           break;
       }
@@ -230,11 +246,11 @@ class Camera
               if( Pitch > CamPitch ) {
                 Pitch -= 0.5;
               }
-              if( Pitch < -45.0 ) {
-                Pitch = -45.0;
+              if( Pitch < -PITCH_MAX ) {
+                Pitch = -PITCH_MAX;
               }
-              if( Pitch > 45.0 ) {
-                Pitch = 45.0;
+              if( Pitch > PITCH_MAX ) {
+                Pitch = PITCH_MAX;
               }
 
             }
