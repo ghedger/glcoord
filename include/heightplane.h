@@ -46,7 +46,7 @@ class HeightPlane : public GameObject
     virtual void test() {
 #ifdef HP_TEST_HACK
       for( int y = 40; y < 60; y++ ) {
-        for( int x = 40; x < 60; x++ ) {
+        for( int x = 40; x < 50; x++ ) {
           m_vertices[ x * 6 * 8 + 1  + ( y * 6 * 8 * HP_XSIZE ) ] += sin( _theta ) / 7;
           m_vertices[ x * 6 * 8 + 9  + ( y * 6 * 8 * HP_XSIZE ) ] += sin( _theta ) / 7;
           m_vertices[ x * 6 * 8 + 17 + ( y * 6 * 8 * HP_XSIZE ) ] += sin( _theta ) / 7;

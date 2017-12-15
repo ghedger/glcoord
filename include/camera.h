@@ -221,7 +221,7 @@ class Camera
             //Pitch = asin( xzDelta / delta.y ) * 180 / M_PI;
             //CamPitch = atan2( ( double )xzDelta, (double )delta.y ) * 10.0;
             CamPitch = atan2( ( double )delta.y, (double )xzDelta ) * 180.0 / M_PI;
-            std::cout << delta.y << " " << xzDelta << " " << CamPitch << std::endl;
+            //std::cout << delta.y << " " << xzDelta << " " << CamPitch << std::endl;
             //Pitch += (CamPitch - Pitch) / 10;
             if( CamPitch < 90.0 ) {
               if( Pitch < CamPitch ) {
