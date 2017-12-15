@@ -13,8 +13,8 @@ class ObjManager
 
   protected:
     void UpdateAll();
-    ObjType     _type;
-    ObjImpl *   _headSentinel;
-    ObjImpl *   _tailSentinel;
+    ObjType   _type;
+    ObjImpl   _headSentinel;
+    ObjImpl   _tailSentinel;
 };
 

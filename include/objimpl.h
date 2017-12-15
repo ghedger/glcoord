@@ -1,6 +1,12 @@
 // Pure virtual class for game object implementation
+// This implements only the linkage and contains no pure virtual functions.
+// It is implmented twice in the instantiation of the object manager for the
+// head and tail sentinel nodes.
+// All other object types that want to be in the update loop should inherit from this class.
 
 #pragma once
+
+#include "gameobj.h"
 
 enum ObjType
 {
@@ -10,13 +16,11 @@ enum ObjType
 };
 
 
-
-class ObjImpl
+class ObjImpl : public GameObj
 {
   public:
-    ObjImpl();
-    virtual ~ObjImpl();
-    virtual void Update() = 0;
+    ObjImpl() {};
+    virtual ~ObjImpl() {};
 
     // Insert into linked list
     void Insert( ObjImpl * pAfter )
@@ -34,10 +38,18 @@ class ObjImpl
       this->_pNext->_pPrev = this->_pPrev;
     }
 
+    // Stock implementation of pure virtuals from GameObj
+    bool init() { return true; };
+    void draw() {};
+    virtual void update() {};
+
+    // Interface functions
+
     // getters/setters
     ObjType getType() { return _type; }
     void setType( ObjType t ) { _type = t; }
-
+    class ObjImpl * getNext() { return _pNext; }
+    class ObjImpl * getPrev() { return _pPrev; }
 
   protected:
     class ObjImpl * _pNext;

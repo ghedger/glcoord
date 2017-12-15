@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gameobject.h"
+#include "gameobj.h"
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -12,7 +12,7 @@ struct CUSTOMVERTEX
 };
 
 
-class Spherex : virtual public GameObject
+class Spherex : virtual public GameObj
 {
 	public:
 		Spherex();

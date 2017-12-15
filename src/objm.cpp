@@ -3,6 +3,7 @@
 
 ObjManager::ObjManager()
 {
+
 }
 
 ObjManager::~ObjManager()
@@ -12,7 +13,12 @@ ObjManager::~ObjManager()
 
 void ObjManager::UpdateAll()
 {
-  if( _headSentinel ) {
-    // Perform update
+  ObjImpl *pO;
+  if( pO = _headSentinel.getNext() ) {
+    while( pO != &_tailSentinel )
+    {
+      pO->update();
+      pO = pO->getNext();
+    }
   }
 }

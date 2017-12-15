@@ -3,18 +3,25 @@
 
 #pragma once
 
-#include "gameobject.h"
+#include "gameobj.h"
 #include <glm/glm.hpp>
 
 #define HP_MAX_PARAMS 4
 
 #define HP_PARAM_CHECKERBOARD_IDX 0
 
-class HeightPlane : public GameObject
+class HeightPlane : public GameObj
 {
   public:
     HeightPlane();
     ~HeightPlane();
+
+
+    // Interface implementation
+    virtual void update() {};
+
+
+    // Our implementations
 
     virtual float getHeightAt( const float x, const float y );
     glm::vec3 getNormalAt( const float x, const float y );
@@ -46,7 +53,7 @@ class HeightPlane : public GameObject
     virtual void test() {
 #ifdef HP_TEST_HACK
       for( int y = 40; y < 60; y++ ) {
-        for( int x = 40; x < 50; x++ ) {
+        for( int x = 40; x < 60; x++ ) {
           m_vertices[ x * 6 * 8 + 1  + ( y * 6 * 8 * HP_XSIZE ) ] += sin( _theta ) / 7;
           m_vertices[ x * 6 * 8 + 9  + ( y * 6 * 8 * HP_XSIZE ) ] += sin( _theta ) / 7;
           m_vertices[ x * 6 * 8 + 17 + ( y * 6 * 8 * HP_XSIZE ) ] += sin( _theta ) / 7;

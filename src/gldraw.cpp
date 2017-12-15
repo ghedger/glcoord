@@ -219,7 +219,7 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
   // Our test hack
 #ifdef HP_TEST_HACK
   for( int y = 40; y < 60; y++ ) {
-    glBufferSubData( GL_ARRAY_BUFFER, g_pPlayfield->testOffset( y ) * sizeof(float), 10 * 6 * 8 * sizeof(float), g_pPlayfield->testGetRowPtr( y ) );
+    glBufferSubData( GL_ARRAY_BUFFER, g_pPlayfield->testOffset( y ) * sizeof(float), 20 * 6 * 8 * sizeof(float), g_pPlayfield->testGetRowPtr( y ) );
   }
 #endif
 
@@ -282,8 +282,8 @@ GLFWwindow * initWindow()
 
 
 
-static float ballX = 56.0;
-static float ballZ = 30.0;
+static float ballX = 55.0;
+static float ballZ = 108.0;
 static float ballY = 0.0;
 static float ballXVel = 0.0;
 static float ballZVel = 0.0;
@@ -431,7 +431,7 @@ int main()
     cameraReflect.UpdateVectors();
 #endif
 
-    glm::mat4 projectionReflect = glm::perspective( ( float ) ( M_PI / 2 + M_PI / 4 ) /*glm::radians(cameraReflect.Zoom)*/, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, MAX_VIEWING_DISTANCE );
+    glm::mat4 projectionReflect = glm::perspective( ( float ) ( M_PI / 2 + M_PI / 4 + M_PI / 8 ) /*glm::radians(cameraReflect.Zoom)*/, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, MAX_VIEWING_DISTANCE );
 
     glm::mat4 viewReflect = cameraReflect.GetLookAtMatrix( lookAt );
     glm::mat4 normal;
@@ -541,7 +541,7 @@ void processInput(GLFWwindow *window)
   }
   glm::vec3 pos = camera.getPosition();
   pos.y = g_pPlayfield->getHeightAt( pos.x, pos.z ) + EYE_HEIGHT;
-//#define DEBUG_POSITION
+#define DEBUG_POSITION
 #ifdef DEBUG_POSITION
   printf( "%2.2f %2.2f %2.2f \n", pos.x, pos.y, pos.z );
 #endif
