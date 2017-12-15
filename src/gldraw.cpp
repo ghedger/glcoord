@@ -127,9 +127,7 @@ void setMaterialsAndLighting( Shader shader )
   shader.setFloat("pointLights[1].quadratic", 0.032);
 }
 
-
 Model * ourRobot = NULL;
-
 void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer )
 {
   if( toBuffer )
@@ -377,19 +375,7 @@ int main()
     //
     // RENDER
     //
-
-#if 1
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, MAX_VIEWING_DISTANCE);
-#else
-    glm::mat4 projection = glm::ortho(
-        ( float ) 0.0f, // (SCR_WIDTH / 2 - SCR_WIDTH / 4),
-        ( float ) (SCR_WIDTH / 4),
-        ( float ) 0.0, //(SCR_HEIGHT / 2 - SCR_HEIGHT / 4 ),
-        ( float ) (SCR_HEIGHT / 4),
-        ( float ) 0.0f,
-        ( float ) 100.0f
-        );
-#endif
 
     glm::mat4 view = camera.GetViewMatrix();
 
@@ -411,18 +397,13 @@ int main()
       if( ballZVel < -MAX_VEL )
         ballZVel = -MAX_VEL;
 
-
       ballX += ballXVel;
       ballZ += ballZVel;
       ballY = g_pPlayfield->getHeightAt( ballX, ballZ ) + 0.5;
       if( ballX > 192.0f || ballX < 8.0f ) {
         ballTheta = -ballTheta;
-
-
       }
     }
-
-    //camera.setPitch( 0.0 );
 
     glm::vec3 delta = cameraReflect.getPosition() - camera.getPosition();
     cameraReflect.setPosition( glm::vec3( ballX, ballY, ballZ ) );
@@ -450,128 +431,41 @@ int main()
     cameraReflect.UpdateVectors();
 #endif
 
-#if 1
     glm::mat4 projectionReflect = glm::perspective( ( float ) ( M_PI / 2 ) /*glm::radians(cameraReflect.Zoom)*/, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, MAX_VIEWING_DISTANCE );
-#else
-    glm::mat4 projectionReflect = glm::ortho(
-        ( float ) 0.0f, // (SCR_WIDTH / 2 - SCR_WIDTH / 4),
-        ( float ) (SCR_WIDTH / 4),
-        ( float ) 0.0, //(SCR_HEIGHT / 2 - SCR_HEIGHT / 4 ),
-        ( float ) (SCR_HEIGHT / 4),
-        ( float ) 0.0f,
-        ( float ) 100.0f
-        );
-#endif
 
-#if 1
     glm::mat4 viewReflect = cameraReflect.GetLookAtMatrix( lookAt );
-    glm::vec3 eyeReflect = { camera.Position.x - ballX, camera.Position.y - ballY, camera.Position.z - ballZ };
-    //glm::vec3 eyeReflect = { ballX - camera.Position.x , ballY - camera.Position.y, ballZ - camera.Position.z};
-
-    static int debugShader = 0x40;
-    //debugShader++;
-
     glm::mat4 normal;
-    /*
-       = {
-       1.0, 0.0, 0.0, 1.0,
-       0.0, 1.0, 0.0, 1.0,
-       0.0, 0.0, 1.0, 1.0,
-       0.0, 0.0, 0.0, 1.0
-       };
-       */
     glm::mat4 modelReflect;
-    if( 0x40 & debugShader ) {
-      lightingShader.use();
-      //lightingShader.setMat4( "mNormal", normal );
-      //lightingShader.setVec3( "uEye", eyeReflect);
-      lightingShader.setMat4( "projection", projectionReflect);
-      lightingShader.setMat4( "view", viewReflect);
-      lightingShader.setMat4( "model", modelReflect);
-    } else {
-      reflectShader.use();
-      reflectShader.setMat4( "mNormal", normal );
-      reflectShader.setVec3( "uEye", eyeReflect);
-      reflectShader.setMat4( "projection", projectionReflect);
-      reflectShader.setMat4( "view", viewReflect);
-      reflectShader.setMat4( "model", modelReflect);
-    }
-    // render the SEM for projection onto ball
-    // render( projectionReflect, viewReflect, lightingShader, false);
+    lightingShader.use();
+    lightingShader.setMat4( "projection", projectionReflect);
+    lightingShader.setMat4( "view", viewReflect);
+    lightingShader.setMat4( "model", modelReflect);
 
-    // Debug
-/*
-    for( int i = 0; i < 4; i++ ) {
-      for( int j = 0; j < 4; j++ ) {
-        std::cout << viewReflect[i][j] << " ";
-      }
-      std::cout << std::endl;
-    }
-*/
-    render( projectionReflect, viewReflect, ( debugShader & 0x40 ) ? lightingShader : reflectShader, true);
-    //glFlush();
+    // Render the view to the offscreen buffer for environment mapping
+    render( projectionReflect, viewReflect, lightingShader, true);
 
-#endif
-
-    // Render the view
+    // Render the view to the back buffer
     render( projection, view, lightingShader, false);
 
-#if 1
     // TEST MESH
-    //    lightingShader.use();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, renderedTexture);
 
-    static float mtheta = 0.0;
-    //mtheta += 0.04;
-
-#if 1
-    static int debugShader2 = 0x00;
-    //debugShader2++;
-    if( debugShader2 & 0x40 ) {
-      // DRAW BALL WITH SEM SHADER
-      reflectShader.use();
-      reflectShader.setMat4("projection", projection);
-      reflectShader.setMat4("view", view);
-      reflectShader.setMat4( "mNormal", normal );
-      reflectShader.setVec3( "uEye", eyeReflect);
-      glm::mat4 model2;
-      model2 = glm::translate(
-          model2,
-          glm::vec3(ballX,
-            g_pPlayfield->getHeightAt(ballX, ballZ) + 1.0,
-            ballZ)
-          );
-      model2 = glm::rotate(model2, ( float ) ( pitch ), glm::vec3( 1.0f, 0.0f, 0.0f ) );
-      model2 = glm::rotate(model2, ( float ) ( ( -yaw ) ), glm::normalize(glm::vec3( 0.0f, 1.0f, 1.0f ) ) );
-      reflectShader.setMat4("model", model2);
-      ourModel.Draw( reflectShader, renderedTexture );
-    } else {
-      // DRAW RENDERED SEM BALL WITH NORMAL SHADER
-      lightingShader.use();
-      lightingShader.setMat4("projection", projection);
-      lightingShader.setMat4("view", view);
-      //lightingShader.setMat4( "mNormal", normal );
-      //lightingShader.setVec3( "uEye", camera.Position);
-      glm::mat4 model3;
-      model3 = glm::translate(
-          model3,
-          glm::vec3(ballX,
-            g_pPlayfield->getHeightAt(ballX, ballZ) + 0.5,
-            ballZ)
-          );
-
-
-      model3 = glm::rotate(model3, ( float ) ( ( -yaw ) ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
-      model3 = glm::rotate(model3, ( float ) ( pitch ), glm::vec3( 1.0f, 0.0f, 0.0f ) );
-      lightingShader.setMat4("model", model3);
-      ourModel.Draw( lightingShader, renderedTexture );
-    }
-
-
-#endif
-
-#endif
+    // DRAW RENDERED SEM BALL WITH NORMAL SHADER
+    lightingShader.use();
+    lightingShader.setMat4("projection", projection);
+    lightingShader.setMat4("view", view);
+    glm::mat4 model3;
+    model3 = glm::translate(
+        model3,
+        glm::vec3(ballX,
+          g_pPlayfield->getHeightAt(ballX, ballZ) + 0.5,
+          ballZ)
+        );
+    model3 = glm::rotate(model3, ( float ) ( ( -yaw ) ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+    model3 = glm::rotate(model3, ( float ) ( pitch ), glm::vec3( 1.0f, 0.0f, 0.0f ) );
+    lightingShader.setMat4("model", model3);
+    ourModel.Draw( lightingShader, GL_TEXTURE2 );
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     glfwSwapBuffers(window);
@@ -613,7 +507,7 @@ void processInput(GLFWwindow *window)
   }
   glm::vec3 pos = camera.getPosition();
   pos.y = g_pPlayfield->getHeightAt( pos.x, pos.z ) + EYE_HEIGHT;
-  #define DEBUG_POSITION
+#define DEBUG_POSITION
 #ifdef DEBUG_POSITION
   printf( "%2.2f %2.2f %2.2f \n", pos.x, pos.y, pos.z );
 #endif
