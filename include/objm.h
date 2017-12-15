@@ -11,10 +11,13 @@ class ObjManager
     ObjManager();
     virtual ~ObjManager();
 
+    void add( ObjImpl *pO );
+    void del( ObjImpl *pO );
+
   protected:
     void UpdateAll();
-    ObjType   _type;
-    ObjImpl   _headSentinel;
-    ObjImpl   _tailSentinel;
+    ObjType   m_type;
+    ObjImpl   m_headSentinel;
+    ObjImpl   m_tailSentinel;
 };
 

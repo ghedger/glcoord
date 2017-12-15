@@ -23,7 +23,7 @@ class ObjImpl : public GameObj
     virtual ~ObjImpl() {};
 
     // Insert into linked list
-    void Insert( ObjImpl * pAfter )
+    void insert( ObjImpl * pAfter )
     {
       this->_pPrev = pAfter;
       this->_pNext = pAfter->_pNext;
@@ -32,7 +32,7 @@ class ObjImpl : public GameObj
     }
 
     // Remove from linked list
-    void Remove()
+    void remove()
     {
       this->_pPrev->_pNext = this->_pNext;
       this->_pNext->_pPrev = this->_pPrev;

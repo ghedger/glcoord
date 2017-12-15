@@ -16,13 +16,10 @@ class HeightPlane : public GameObj
     HeightPlane();
     ~HeightPlane();
 
-
-    // Interface implementation
+    // Interface implementations
     virtual void update() {};
 
-
-    // Our implementations
-
+    // Heightplane implementations
     virtual float getHeightAt( const float x, const float y );
     glm::vec3 getNormalAt( const float x, const float y );
     bool getColdetAdj( const float x, const float y, const float z, const float radius, glm::vec3 *ap);

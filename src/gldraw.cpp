@@ -19,7 +19,8 @@
 #include "common.h"
 #include "playfield.h"
 #include "camera.h"
-#include "sphere.h"
+#include "objm.h"
+#include "ballobj.h"
 
 #define TEST_TEXTURE
 
@@ -42,8 +43,11 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-// playfield
+// playfield manager
 Playfield *g_pPlayfield;
+
+// object manager
+ObjManager *g_pObjManager;
 
 // timing
 float deltaTime = 0.0f;
@@ -280,6 +284,12 @@ GLFWwindow * initWindow()
   return window;
 }
 
+
+void addObjs()
+{
+  BallObj *pb = new BallObj();
+  g_pObjManager->add( pb );
+}
 
 
 static float ballX = 55.0;
