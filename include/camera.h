@@ -228,11 +228,6 @@ class Camera
               ( double ) ( delta.x * delta.x ) +
               ( double ) ( delta.z * delta.z )
               );
-          double totalDelta = sqrt(
-              ( double ) ( delta.x * delta.x ) +
-              ( double ) ( delta.y * delta.y ) +
-              ( double ) ( delta.z * delta.z )
-              );
           if( 1 ) {
             //Pitch = asin( xzDelta / delta.y ) * 180 / M_PI;
             //CamPitch = atan2( ( double )xzDelta, (double )delta.y ) * 10.0;

@@ -13,9 +13,10 @@ class ObjManager
 
     void add( ObjImpl *pO );
     void del( ObjImpl *pO );
+    void update();
 
   protected:
-    void UpdateAll();
+    virtual void initSentinels();
     ObjType   m_type;
     ObjImpl   m_headSentinel;
     ObjImpl   m_tailSentinel;

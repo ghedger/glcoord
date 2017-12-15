@@ -1,4 +1,3 @@
-
 // HeightPlane implementation
 
 #include "common.h"

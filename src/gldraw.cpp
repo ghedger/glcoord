@@ -21,6 +21,8 @@
 #include "camera.h"
 #include "objm.h"
 #include "ballobj.h"
+#include "gopmanager.h"
+
 
 #define TEST_TEXTURE
 
@@ -48,6 +50,9 @@ Playfield *g_pPlayfield;
 
 // object manager
 ObjManager *g_pObjManager;
+
+// graphics operation manager
+GOPManager *g_pGOPManager;
 
 // timing
 float deltaTime = 0.0f;
@@ -209,7 +214,7 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
   // view/projection transformations
   shader.setMat4("projection", projection);
   shader.setMat4("view", view);
-  glm::mat4 model;
+  glm::mat4 model(1.0f);
   shader.setMat4("model", model);
 
   // bind diffuse map
@@ -233,7 +238,7 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
   if( ourRobot ) {
     // TEST ROBOT
     shader.use();
-    glm::mat4 model3;
+    glm::mat4 model3(1.0f);
     //model2 = glm::scale(model2, glm::vec3(3.4f, 3.4f, 3.4f));
     //shader.setMat4("projection", projection);
     //shader.setMat4("view", view);
@@ -285,10 +290,27 @@ GLFWwindow * initWindow()
 }
 
 
-void addObjs()
+void initObj()
 {
-  BallObj *pb = new BallObj();
-  g_pObjManager->add( pb );
+  g_pObjManager = new ObjManager();
+  if( g_pObjManager ) {
+    BallObj *pO = new BallObj();
+    if( pO ) {
+      pO->setPos( 55.0, 0.0, 108.0 );
+      g_pObjManager->add( pO );
+    }
+  } else {
+    // TODO: LOG ERROR
+  }
+}
+
+void initGOP()
+{
+  g_pGOPManager = new GOPManager();
+  if( !g_pGOPManager ) {
+    // TODO: LOG ERROR
+  }
+
 }
 
 
@@ -320,6 +342,8 @@ int main()
 
   // GPH Stuff
   g_pPlayfield = new Playfield();
+  initObj();
+  initGOP();
   // End GPH
 
 #if 1
@@ -354,7 +378,6 @@ int main()
   // load textures (we now use a utility function to keep the code more organized)
   diffuseMap = loadTexture( "tileset.png");
   specularMap = loadTexture( "pattern2.png");
-
   testTexture = loadTexture( "test.png");
 #endif
 
@@ -371,6 +394,7 @@ int main()
       glm::vec3(ballX, ballY, ballZ),
       glm::normalize(glm::vec3(0.0f, 1.0f, 0.0))
       );
+
   //cameraReflect.setZoom(90.0);
 
   camera.setPitchAdjust( true );
@@ -383,6 +407,8 @@ int main()
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
 
+    g_pObjManager->update();
+
     //
     // UPDATE GAME MOTION AND PHYSICS
     //
@@ -394,21 +420,9 @@ int main()
     // input
     processInput(window);
 
-    // Do after all the movement and collision detection but before render
-    camera.UpdateVectors();
-
-    //
-    // RENDER
-    //
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, MAX_VIEWING_DISTANCE);
-
-    glm::mat4 view = camera.GetViewMatrix();
-
 #if 1
-
     // TEMP CODE: Ball Move
     {
-      static float ballTheta = 0.0;
 #define MAX_VEL 0.01f
       glm::vec3 norm = g_pPlayfield->getNormalAt( ballX, ballZ );
       ballXVel += norm.x / 2000.0f;
@@ -425,91 +439,38 @@ int main()
       ballX += ballXVel;
       ballZ += ballZVel;
       ballY = g_pPlayfield->getHeightAt( ballX, ballZ ) + 0.5;
-      if( ballX > 192.0f || ballX < 8.0f ) {
-        ballTheta = -ballTheta;
-      }
     }
-
-    glm::vec3 normalSurface = { 1.0, 0.0, 0.0 };
-
-    // Calculate incidence:
-    //R = 2 * (I . N) * N - I)
-    ///float dp = glm::dot(glm::normalize( delta ), normalSurface );
-    ///glm::vec3 lookAt = (2 * dp) * normalSurface - glm::normalize( delta );
-    glm::vec3 lookAt = { camera.Position.x - ballX, camera.Position.y - ballY, camera.Position.z - ballZ };
-
-    cameraReflect.UpdateVectors();
 #endif
 
-    glm::mat4 projectionReflect = glm::perspective( ( float ) ( M_PI / 2 + M_PI / 4 + M_PI / 8 ) /*glm::radians(cameraReflect.Zoom)*/, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, MAX_VIEWING_DISTANCE );
+    // Do after all the movement and collision detection but before render
+    camera.UpdateVectors();
 
-    glm::mat4 viewReflect = cameraReflect.GetLookAtMatrix( lookAt );
-    glm::mat4 normal;
-    glm::mat4 modelReflect;
-    lightingShader.use();
-    lightingShader.setMat4( "projection", projectionReflect);
-    lightingShader.setMat4( "view", viewReflect);
-    lightingShader.setMat4( "model", modelReflect);
+    //
+    // RENDER
+    //
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, MAX_VIEWING_DISTANCE);
 
-    // Render the view to the offscreen buffer for environment mapping
-    render( projectionReflect, viewReflect, lightingShader, true);
+    glm::mat4 view = camera.GetViewMatrix();
 
-    // Render the view to the back buffer
+    // Render the view to the visible back buffer
     render( projection, view, lightingShader, false);
 
-    // TEST MESH
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, renderedTexture );
+    // Render all the objects
+    GOPItem *pI = g_pGOPManager->getCurrentItem();
+    if( pI ) {
+      // Set up our ball
+      pI->m_pos = glm::vec3( ballX, ballY, ballZ );
+      pI->m_eyePos = camera.getPosition();
+      pI->m_view = view;
+      pI->m_projection = projection;
+      pI->m_opType = GOP_REFLECTANDFACE;
+      pI->m_customTexture = renderedTexture;
+      pI->m_pMeshModel = &ourModel;
+      pI->m_pShader = &lightingShader;
 
-
-    glm::vec3 delta = cameraReflect.getPosition() - camera.getPosition();
-    cameraReflect.setPosition( glm::vec3( ballX, ballY, ballZ ) );
-    // Calculate angle to player eye position
-    float yaw = atan2(
-        ( double )( camera.getPosition().z - cameraReflect.getPosition().z ),
-        ( double )( camera.getPosition().x - cameraReflect.getPosition().x )
-        );
-
-    // Calculate pitch
-    float sign = ( delta.x * delta.z < 0.0f ) ? -1.0f : 1.0f;
-    double xzDelta = sqrt(
-        ( double ) ( delta.x * delta.x ) +
-        ( double ) ( delta.z * delta.z )
-        );
-    float pitch = atan2( ( double )delta.y, (double )xzDelta );
-
-    // DRAW RENDERED SEM BALL WITH NORMAL SHADER
-    lightingShader.use();
-    lightingShader.setMat4("projection", projection);
-    lightingShader.setMat4("view", view);
-    glm::mat4 model3;
-    model3 = glm::translate(
-        model3,
-        glm::vec3(ballX,
-          g_pPlayfield->getHeightAt(ballX, ballZ) + 0.5,
-          ballZ)
-        );
-#if 1
-    model3 = glm::rotate(model3, ( float ) ( ( -yaw ) ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
-    model3 = glm::rotate(model3,
-        ( float ) ( -pitch ),
-          glm::vec3( -1.0f, 0.0f, 1.0f )
-        /*
-          glm::vec3(
-            ( float ) -delta.z,
-            ( float )  0.0,
-            ( float )  delta.x
-          )
-          */
-      );
-#endif
-      static int debug = 0x00;
-      debug++;
-      if( debug & 0x40 ) {
-        //model3 = glm::rotate(model3, ( float ) ( pitch ), glm::normalize(glm::vec3( delta.x, 0.0, delta.y ) ) );
-       }
-    lightingShader.setMat4("model", model3);
-    ourModel.Draw( lightingShader, renderedTexture);
+      g_pGOPManager->push();
+    }
+    g_pGOPManager->update();
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     glfwSwapBuffers(window);

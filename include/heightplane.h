@@ -5,6 +5,7 @@
 
 #include "gameobj.h"
 #include <glm/glm.hpp>
+#include "common.h"
 
 #define HP_MAX_PARAMS 4
 

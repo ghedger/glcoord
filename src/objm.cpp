@@ -3,12 +3,21 @@
 
 ObjManager::ObjManager()
 {
+  initSentinels();
 
 }
 
 ObjManager::~ObjManager()
 {
   // TODO: Implement and call DeleteAll();
+}
+
+void ObjManager::initSentinels()
+{
+  m_headSentinel.setPrev( (ObjImpl *) 0 );
+  m_headSentinel.setNext( &m_tailSentinel );
+  m_tailSentinel.setPrev( &m_headSentinel );
+  m_tailSentinel.setNext( (ObjImpl *) 0 );
 }
 
 void ObjManager::add( ObjImpl *pO )
@@ -25,11 +34,10 @@ void ObjManager::del( ObjImpl *pO )
   }
 }
 
-
-void ObjManager::UpdateAll()
+void ObjManager::update()
 {
-  ObjImpl *pO;
-  if( pO = m_headSentinel.getNext() ) {
+  ObjImpl *pO = 0;
+  if( ( pO = m_headSentinel.getNext() ) ) {
     while( pO != &m_tailSentinel )
     {
       pO->update();

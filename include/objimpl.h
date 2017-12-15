@@ -44,12 +44,15 @@ class ObjImpl : public GameObj
     virtual void update() {};
 
     // Interface functions
+    // (none yet)
 
     // getters/setters
     ObjType getType() { return _type; }
     void setType( ObjType t ) { _type = t; }
     class ObjImpl * getNext() { return _pNext; }
     class ObjImpl * getPrev() { return _pPrev; }
+    void setNext( ObjImpl *pO ) { _pNext = pO; }
+    void setPrev( ObjImpl *pO ) { _pPrev = pO; }
 
   protected:
     class ObjImpl * _pNext;
