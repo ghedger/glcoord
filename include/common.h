@@ -9,7 +9,6 @@
 #define HP_XMID_GRID (HP_XSIZE / 2)
 #define HP_YMID_GRID (HP_YSIZE / 2)
 #define HP_SMOOTH_NORMALS
-#define HP_TEST_HACK
 
 #define FRICTION_COEFF 0.0052
 

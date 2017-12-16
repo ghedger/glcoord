@@ -125,10 +125,10 @@ void setMaterialsAndLighting( Shader shader )
   shader.setFloat("material.shininess", 32.0f);
 
   // directional light
-  shader.setVec3("dirLight.direction", -0.1f, -0.8f, -0.1f);
-  shader.setVec3("dirLight.ambient", 0.3f, 0.3f, 0.3f);
-  shader.setVec3("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
-  shader.setVec3("dirLight.specular", 0.7f, 0.7f, 0.7f);
+  shader.setVec3("dirLight.direction", -0.5f, -0.5f, -0.0f);
+  shader.setVec3("dirLight.ambient", 0.6f, 0.6f, 0.6f);
+  shader.setVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
+  shader.setVec3("dirLight.specular", 0.9f, 0.9f, 0.9f);
   // point light 1
   shader.setVec3("pointLights[0].position", pointLightPositions[0]);
   shader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
@@ -249,6 +249,11 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
           g_pPlayfield->getHeightAt(43.0, 43.0) + 1.0,
           43.0)
         );
+
+    static float robotTheta = 0.0f;
+    robotTheta += 0.001f;
+
+    model3 = glm::rotate( model3, robotTheta, glm::vec3 { 0.0, 1.0, 0.0 } );
     shader.setMat4("model", model3);
 
     ourRobot->Draw(shader);
@@ -314,8 +319,8 @@ void initGOP()
 }
 
 
-static float ballX = 55.0;
-static float ballZ = 108.0;
+static float ballX = 54.0;
+static float ballZ = 52.0;
 static float ballY = 0.0;
 static float ballXVel = 0.0;
 static float ballZVel = 0.0;
@@ -337,7 +342,7 @@ int main()
   // build and compile our shader zprogram
   Shader lightingShader("multilight.vs", "multilight.fs");
   Shader lampShader("lamp.vs", "lamp.fs");
-  Shader reflectShader("reflect.vs", "reflect.fs");
+  Shader reflectShader("nolight.vs", "nolight.fs");
   //Shader reflectShader("multilight.vs", "multilight.fs");
 
   // GPH Stuff
@@ -454,6 +459,7 @@ int main()
 
     // Render the view to the visible back buffer
     render( projection, view, lightingShader, false);
+    glFlush();
 
     // Render all the objects
     GOPItem *pI = g_pGOPManager->getCurrentItem();

@@ -9,6 +9,7 @@
 
 #define HP_MAX_PARAMS 4
 
+//#define HP_TEST_HACK
 #define HP_PARAM_CHECKERBOARD_IDX 0
 
 class HeightPlane : public GameObj

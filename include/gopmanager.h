@@ -136,6 +136,15 @@ class GOPManager
 
       // DRAW RENDERED SEM BALL WITH NORMAL SHADER
       pI->m_pShader->use();
+      // TODO: needs to be parameterized
+      // directional light
+      #if 0
+      pI->m_pShader->setVec3("dirLight.direction", -0.1f, -0.8f, -0.1f);
+      pI->m_pShader->setVec3("dirLight.ambient", 0.6f, 0.6f, 0.6f);
+      pI->m_pShader->setVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
+      pI->m_pShader->setVec3("dirLight.specular", 0.9f, 0.9f, 0.9f);
+      #endif
+
       pI->m_pShader->setMat4("projection", pI->m_projection);
       pI->m_pShader->setMat4("view", pI->m_view);
       glm::mat4 model3(1.0f);
