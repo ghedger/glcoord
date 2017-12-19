@@ -412,6 +412,11 @@ int main()
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
 
+#define PROFILE_FPS
+#ifdef PROFILE_FPS
+    std::cout << (1.0f / deltaTime) << std::endl;
+#endif
+
     g_pObjManager->update();
 
     //
@@ -481,6 +486,7 @@ int main()
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     glfwSwapBuffers(window);
     glfwPollEvents();
+
   }
 
   // optional: de-allocate all resources once they've outlived their purpose:
@@ -518,7 +524,7 @@ void processInput(GLFWwindow *window)
   }
   glm::vec3 pos = camera.getPosition();
   pos.y = g_pPlayfield->getHeightAt( pos.x, pos.z ) + EYE_HEIGHT;
-#define DEBUG_POSITION
+//#define DEBUG_POSITION
 #ifdef DEBUG_POSITION
   printf( "%2.2f %2.2f %2.2f \n", pos.x, pos.y, pos.z );
 #endif
