@@ -32,7 +32,7 @@ CFLAGS 		+= $(CURL_CFLAGS)
 
 # LIB	:= $(shell pkg-config --libs $(packages))
 
-LIB 				+= -L$(LD_LIBRARY_PATH) $(SDL_LIBS) $(CURL_LIBS) -lm -lpthread -lGL -lGLU -lglut -lglfw -ldl -lassimp -lboost_thread -lboost_system
+LIB 				+= -L$(LD_LIBRARY_PATH) $(SDL_LIBS) $(CURL_LIBS) -lm -lpthread -lGL -lGLU -lglut -ldl -lassimp -lboost_thread -lboost_system `pkg-config --static --libs glfw3`
 INC         := -I$(INCDIR) -I$(CPATH) -I/usr/local/include
 INCDEP      := -I$(INCDIR)
 
