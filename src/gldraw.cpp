@@ -21,8 +21,8 @@
 #include "camera.h"
 #include "objm.h"
 #include "ballobj.h"
+#include "robotobj.h"
 #include "gopmanager.h"
-
 
 #define TEST_TEXTURE
 
@@ -61,46 +61,15 @@ float lastFrame = 0.0f;
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
+// models
+Model * robotModel = nullptr;
+Model * ballModel = nullptr;
+
 // synchronization
 boost::mutex gl_mutex;
 
 
-unsigned int loadTexture( const char *path)
-{
-  unsigned int textureID;
-  glGenTextures(1, &textureID);
-
-  int width, height, nrComponents;
-  unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
-  if (data)
-  {
-    GLenum format = GL_RGBA;
-    if (nrComponents == 1)
-      format = GL_RED;
-    else if (nrComponents == 3)
-      format = GL_RGB;
-    else if (nrComponents == 4)
-      format = GL_RGBA;
-
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    stbi_image_free(data);
-  }
-  else
-  {
-    std::cout << "Texture failed to load at path: " << path << std::endl;
-    stbi_image_free(data);
-  }
-
-  return textureID;
-}
+extern unsigned int loadTexture( const char *path );
 
 // TODO: These should not be global.  This whole thing should
 // eventually live in a class.
@@ -147,7 +116,6 @@ void setMaterialsAndLighting( Shader shader )
   shader.setFloat("pointLights[1].quadratic", 0.032);
 }
 
-Model * ourRobot = NULL;
 void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer )
 {
   if( toBuffer )
@@ -156,7 +124,7 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
     // Init FBO context
     if( !FBO ) {
       std::cout << "INITIALIZING FBO..." << std::endl;
-      glGenFramebuffers( 1, &FBO );                     //Generate a framebuffer object(FBO)
+      glGenFramebuffers( 1, &FBO );                     // Generate a framebuffer object (FBO)
       glBindFramebuffer( GL_FRAMEBUFFER, FBO );         // and bind it to the pipeline
 
       glGenTextures( 1, &renderedTexture );
@@ -225,7 +193,9 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
   glBindTexture(GL_TEXTURE_2D, specularMap);
   glBindVertexArray(VAO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  // Our test hack
+
+  // Our test hack: section of playfield will act as a platform, moving up and down
+// #define HP_TEST_HACK
 #ifdef HP_TEST_HACK
   for( int y = 40; y < 60; y++ ) {
     glBufferSubData( GL_ARRAY_BUFFER, g_pPlayfield->testOffset( y ) * sizeof(float), 20 * 6 * 8 * sizeof(float), g_pPlayfield->testGetRowPtr( y ) );
@@ -235,29 +205,8 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
   //shader.use();
   glDrawArrays(GL_TRIANGLES, 0, g_pPlayfield->getVerticeTot());
 
-  if( ourRobot ) {
-    // TEST ROBOT
-    shader.use();
-    glm::mat4 model3(1.0f);
-    //model2 = glm::scale(model2, glm::vec3(3.4f, 3.4f, 3.4f));
-    //shader.setMat4("projection", projection);
-    //shader.setMat4("view", view);
-    // world transformation
-    model3 = glm::translate(
-        model3,
-        glm::vec3(43.0f,
-          g_pPlayfield->getHeightAt(43.0, 43.0) + 1.0,
-          43.0)
-        );
-
-    static float robotTheta = 0.0f;
-    robotTheta += 0.001f;
-
-    model3 = glm::rotate( model3, robotTheta, glm::vec3 { 0.0, 1.0, 0.0 } );
-    shader.setMat4("model", model3);
-
-    ourRobot->Draw(shader);
-  }
+  // draw objects
+  g_pObjManager->drawAll();
 
   if( toBuffer ) {
     glFlush();
@@ -295,13 +244,28 @@ GLFWwindow * initWindow()
 }
 
 
+Shader *g_lightingShader = nullptr;   // TODO: Better way? We're instantiating locally and setting this pointer to local var in main()
 void initObj()
 {
   g_pObjManager = new ObjManager();
   if( g_pObjManager ) {
-    BallObj *pO = new BallObj();
+    // Add ball
+    ObjImpl *pO = new BallObj();
     if( pO ) {
-      pO->setPos( 55.0, 0.0, 108.0 );
+      pO->setPos( 54.0, 0.0, 52.0 );
+      pO->setModel( ballModel );
+      pO->setShader( g_lightingShader );
+      pO->setGopManager( g_pGOPManager);
+      g_pObjManager->add( pO );
+    }
+
+    // Add robot
+    pO = new RobotObj();
+    if( pO ) {
+      pO->setPos( 43.0, 0.0, 43.0 );
+      pO->setModel( robotModel );
+      pO->setShader( g_lightingShader );
+      pO->setGopManager( g_pGOPManager);
       g_pObjManager->add( pO );
     }
   } else {
@@ -315,15 +279,8 @@ void initGOP()
   if( !g_pGOPManager ) {
     // TODO: LOG ERROR
   }
-
 }
 
-
-static float ballX = 54.0;
-static float ballZ = 52.0;
-static float ballY = 0.0;
-static float ballXVel = 0.0;
-static float ballZVel = 0.0;
 int main()
 {
   //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -341,13 +298,13 @@ int main()
 
   // build and compile our shader zprogram
   Shader lightingShader("multilight.vs", "multilight.fs");
+  g_lightingShader = &lightingShader;
   Shader lampShader("lamp.vs", "lamp.fs");
   Shader reflectShader("nolight.vs", "nolight.fs");
   //Shader reflectShader("multilight.vs", "multilight.fs");
 
   // GPH Stuff
   g_pPlayfield = new Playfield();
-  initObj();
   initGOP();
   // End GPH
 
@@ -389,22 +346,18 @@ int main()
   // Set start position
   camera.setPosition( { 56.0, 0, 54.0 } );
 
-  // Model ourModel("nanosuit.obj");
-  Model ourModel("dome2.obj");
-  ourRobot = new Model("nanosuit.obj");
+  // Load the models
+  ballModel = new Model("dome2.obj");
+  robotModel = new Model("nanosuit.obj");
 
-  ballY = g_pPlayfield->getHeightAt( ballX, ballZ ) + 0.5;
-
-  Camera cameraReflect(
-      glm::vec3(ballX, ballY, ballZ),
-      glm::normalize(glm::vec3(0.0f, 1.0f, 0.0))
-      );
-
-  //cameraReflect.setZoom(90.0);
+  // init object manager AFTER models are loaded...
+  initObj();
 
   camera.setPitchAdjust( true );
 
-  // Main game loop
+  //
+  // MAIN GAME LOOP
+  //
   while (!glfwWindowShouldClose(window))
   {
     // per-frame time logic
@@ -417,40 +370,17 @@ int main()
     std::cout << (1.0f / deltaTime) << std::endl;
 #endif
 
-    g_pObjManager->update();
 
     //
     // UPDATE GAME MOTION AND PHYSICS
     //
-
+    g_pObjManager->update();
     // TEST CODE; REMOVE
     g_pPlayfield->test();
     // END TEST
 
     // input
     processInput(window);
-
-#if 1
-    // TEMP CODE: Ball Move
-    {
-#define MAX_VEL 0.01f
-      glm::vec3 norm = g_pPlayfield->getNormalAt( ballX, ballZ );
-      ballXVel += norm.x / 2000.0f;
-      ballZVel += norm.y / 2000.0f;
-      if( ballXVel > MAX_VEL )
-        ballXVel = MAX_VEL;
-      if( ballXVel < -MAX_VEL )
-        ballXVel = -MAX_VEL;
-      if( ballZVel > MAX_VEL )
-        ballZVel = MAX_VEL;
-      if( ballZVel < -MAX_VEL )
-        ballZVel = -MAX_VEL;
-
-      ballX += ballXVel;
-      ballZ += ballZVel;
-      ballY = g_pPlayfield->getHeightAt( ballX, ballZ ) + 0.5;
-    }
-#endif
 
     // Do after all the movement and collision detection but before render
     camera.UpdateVectors();
@@ -466,27 +396,14 @@ int main()
     render( projection, view, lightingShader, false);
     glFlush();
 
+    g_pObjManager->drawSEMAll(renderedTexture, &camera, &projection, &view);    // Draw spherical-environment mapping objects
+
     // Render all the objects
-    GOPItem *pI = g_pGOPManager->getCurrentItem();
-    if( pI ) {
-      // Set up our ball
-      pI->m_pos = glm::vec3( ballX, ballY, ballZ );
-      pI->m_eyePos = camera.getPosition();
-      pI->m_view = view;
-      pI->m_projection = projection;
-      pI->m_opType = GOP_REFLECTANDFACE;
-      pI->m_customTexture = renderedTexture;
-      pI->m_pMeshModel = &ourModel;
-      pI->m_pShader = &lightingShader;
 
-      g_pGOPManager->push();
-    }
     g_pGOPManager->update();
-
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     glfwSwapBuffers(window);
     glfwPollEvents();
-
   }
 
   // optional: de-allocate all resources once they've outlived their purpose:
@@ -555,7 +472,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-  // make sure the viewport matches the new window dimensions; note that width and 
+  // make sure the viewport matches the new window dimensions; note that width and
   // height will be significantly larger than specified on retina displays.
   boost::mutex::scoped_lock lock(gl_mutex);
   glDeleteBuffers( 1, &FBO );

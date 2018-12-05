@@ -24,7 +24,7 @@ OBJEXT      := o
 #CFLAGS      := -std=c++11 -Wall -O0 -g -pg -ggdb -c
 #LFLAGS      := -pg
 #DEBUGGING
-#CFLAGS      := -std=c++11 -Wall -O0 -g -ggdb -c
+CFLAGS      := -std=c++11 -Wall -O0 -g -ggdb -c
 #OPTIMIZED
 CFLAGS      := -std=c++11 -g -Wall -O3 -c
 CFLAGS 		+= $(SDL_CFLAGS)

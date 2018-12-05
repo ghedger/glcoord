@@ -1,17 +1,17 @@
-#ifndef _BALLOBJ_H_
-#define _BALLOBJ_H_
+#ifndef ROBOTOBJ_H_
+#define ROBOTOBJ_H_
 
 #include "objimpl.h"
 
-class BallObj : public ObjImpl
+class RobotObj : public ObjImpl
 {
   public:
-    BallObj();
-    virtual ~BallObj();
+    RobotObj();
+    virtual ~RobotObj();
 
     bool init();
     void draw();
     void drawSEM(unsigned int renderedTexture, Camera *camera, glm::mat4 *projection, glm::mat4 *view);
     void update();
 };
-#endif // #ifndef _BALLOBJ_H_
+#endif // #ifdef ROBOTOBJ_H_

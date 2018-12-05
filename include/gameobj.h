@@ -1,7 +1,8 @@
 // gameObject
-// Declaration for gameObject, a common ancestor 
+// Declaration for gameObject, a common ancestor
 
-#pragma once
+#ifndef GAMEOBJ_H_
+#define GAMEOBJ_H_
 
 class GameObj
 {
@@ -51,3 +52,4 @@ class GameObj
     double m_yv;
     double m_zv;
 };
+#endif // #ifndef GAMEOBJ_H_

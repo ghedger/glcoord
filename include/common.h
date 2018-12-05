@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _COMMON_H_
+#define _COMMON_H_
 
 // Playfield
 #define HP_XSIZE 200
@@ -22,3 +23,5 @@
 
 #define EYE_HEIGHT 0.5
 #define MAX_VIEWING_DISTANCE 200.0f
+
+#endif // #ifndef _COMMON_H_

@@ -42,7 +42,6 @@ bool Playfield::init()
 // draw
 void Playfield::draw()
 {
-
   glPolygonMode( GL_FRONT, GL_FILL);
   glBegin( GL_TRIANGLES);
   setPlaneMaterial2();
@@ -67,8 +66,8 @@ void Playfield::draw()
 void Playfield::drawLines()
 {
   int x, y;
-  for( x = 0; x < HP_XSIZE - 1; x++ ) {
-    for( y = 0; y < HP_YSIZE - 1; y++ ) {
+  for( x = 0; x < HP_XSIZE - 1; ++x ) {
+    for( y = 0; y < HP_YSIZE - 1; ++y ) {
       glVertex3f( (double) x * HP_GRIDSIZE, (double) y * HP_GRIDSIZE, m_heightPlane[ x ][ y ] + 0.01 );
       glVertex3f( (double) ( x + 1 ) * HP_GRIDSIZE , (double) y * HP_GRIDSIZE, m_heightPlane[ x + 1 ][ y ] + 0.01 );
       glVertex3f( (double) ( x + 1) * HP_GRIDSIZE , (double) ( y + 1 ) * HP_GRIDSIZE, m_heightPlane[ x + 1 ][ y + 1 ] + 0.01 );
@@ -86,8 +85,8 @@ void Playfield::drawSolids()
 
   g_squareWhite = true;
 
-  for( x = 0; x < HP_XSIZE - 1; x++ ) {
-    for( y = 0; y < HP_YSIZE - 1; y++ ) {
+  for( x = 0; x < HP_XSIZE - 1; ++x ) {
+    for( y = 0; y < HP_YSIZE - 1; ++y ) {
       if( !getParam( HP_PARAM_CHECKERBOARD_IDX ) ) {
         if( !g_squareWhite ) {
           glColor3f(0.0, 0.0, 0.0 );

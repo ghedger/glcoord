@@ -205,7 +205,7 @@ bool HeightPlane::initHeightPlane()
 
 // smoothNormals
 // Called after height plane has been generated to average out the normals.
-// 
+//
 void HeightPlane::smoothNormals()
 {
 	// Surface Normal
@@ -313,7 +313,7 @@ glm::vec3 crossProduct( const glm::vec3 v1,  const glm::vec3 v2 )
 }
 
 // TODO: Move this to a vector math lib
-// Normalize a vec 
+// Normalize a vec
 glm::vec3 normalizeVec( glm::vec3 v )
 {
 	glm::vec3 nv;
@@ -336,9 +336,9 @@ float dotProduct( glm::vec3& u, glm::vec3& v )
 
 #define dot(u,v)   ((u).x * (v).x + (u).y * (v).y + (u).z * (v).z)
 // norm = length of vector
-#define norm(v)    sqrt(dot(v,v))  
+#define norm(v)    sqrt(dot(v,v))
 // distance = norm of difference
-#define d(u,v)     norm(u-v)       
+#define d(u,v)     norm(u-v)
 
 // TODO: Move this to a vector math lib
 float closestPointOnPlane( const glm::vec3 v0, const glm::vec3 v1, glm::vec3& origin, glm::vec3& p, glm::vec3 *cp, glm::vec3 *pn )
@@ -412,23 +412,23 @@ bool HeightPlane::getColdetAdj( const float fx, const float fy, const float fz, 
 			}
 
 			float dn = closestPointOnPlane( v0, v1, origin, p, &cp, &n );
-			glm::vec3 surfacePoint = { 
+			glm::vec3 surfacePoint = {
 				fx + ( n.x * radius ),
 				fy + ( n.y * radius ),
 				fz + ( n.z * radius )
-			}; 
+			};
 			// Now that we have the closest point on the plane to the center,
 			// we must call again with the surface so we can an appropriate distance.
 			dn = closestPointOnPlane( v0, v1, origin, surfacePoint, &cp, &n );
 			if( dn > 0 && -sqrt( pow(cp.x - fx, 2) + pow(cp.y - fy, 2) + pow(cp.z - fz, 2)) < radius ) {
-				ap->x = cp.x - ( n.x * radius ); 
-				ap->y = cp.y - ( n.y * radius ); 
-				ap->z = cp.z - ( n.z * radius ); 
+				ap->x = cp.x - ( n.x * radius );
+				ap->y = cp.y - ( n.y * radius );
+				ap->z = cp.z - ( n.z * radius );
 				bRet = true;
 				printf("b");
 			}
 #if 1
-			printf("BR { %2.2f %2.2f %2.2f }  { %2.2f %2.2f %2.2f }  %2.2f\n", 
+			printf("BR { %2.2f %2.2f %2.2f }  { %2.2f %2.2f %2.2f }  %2.2f\n",
 					cp.x, cp.y, cp.z,
 					n.x, n.y, n.z,
 					dn
@@ -442,7 +442,7 @@ bool HeightPlane::getColdetAdj( const float fx, const float fy, const float fz, 
 //#define DEBUG_HP
 // getHeightAt
 // Get precise height on height plane at position { x, y }
-// This facilitate smooth movement along the surfiace.
+// This facilitate smooth movement along the surface.
 // (Nasty little function chock full of linear algeraic formulae)
 // Entry:  x position
 //        y position
@@ -582,24 +582,20 @@ glm::vec3 HeightPlane::getNormalAt( const float fx, const float fy )
 //        x on triangle
 //        y on triangle
 // Exit:  z at { x, y }
-//
 float HeightPlane::calcZ(const glm::vec3 p1, const glm::vec3 p2, const glm::vec3 p3, const float x, const float y)
 {
 	float det = (p2.y - p3.y) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.y - p3.y);
-
 	float l1 = ((p2.y - p3.y) * (x - p3.x) + (p3.x - p2.x) * (y - p3.y)) / det;
 	float l2 = ((p3.y - p1.y) * (x - p3.x) + (p1.x - p3.x) * (y - p3.y)) / det;
 	float l3 = 1.0f - l1 - l2;
-
-
 	float z = l1 * p1.z + l2 * p2.z + l3 * p3.z;
 #ifdef DEBUG_BARYCENTRIC
-	printf("{%2.2f %2.2f %2.2f} {%2.2f %2.2f %2.2f} {%2.2f %2.2f %2.2f} [%2.2f %2.2f %2.2f] %2.2f %2.2f  %2.4f\n", 
+	printf("{%2.2f %2.2f %2.2f} {%2.2f %2.2f %2.2f} {%2.2f %2.2f %2.2f} [%2.2f %2.2f %2.2f] %2.2f %2.2f  %2.4f\n",
 			p1.x, p1.y, p1.z,
 			p2.x, p2.y, p2.z,
 			p3.x, p3.y, p3.z,
 			l1, l2, l3,
-			x, y, z 
+			x, y, z
 			);
 #endif
 	return z;
