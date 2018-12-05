@@ -111,6 +111,8 @@ class ObjImpl : public GameObj
     Model *     _model;
     Shader *    _shader;
     GOPManager *_gop_manager;
+
+    friend class ObjManager;
 };
 
 #endif // #define _OBJIMPL_H_

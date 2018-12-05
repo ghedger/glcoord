@@ -193,7 +193,7 @@ vec2 operator * (const mat2x2 &Matrix, const vec2 &u)
 
 	v.x = Matrix.M[0] * u.x + Matrix.M[2] * u.y;
 	v.y = Matrix.M[1] * u.x + Matrix.M[3] * u.y;
-	
+
 	return v;
 }
 
@@ -325,7 +325,7 @@ vec3 operator * (const mat3x3 &Matrix, const vec3 &u)
 	v.x = Matrix.M[0] * u.x + Matrix.M[3] * u.y + Matrix.M[6] * u.z;
 	v.y = Matrix.M[1] * u.x + Matrix.M[4] * u.y + Matrix.M[7] * u.z;
 	v.z = Matrix.M[2] * u.x + Matrix.M[5] * u.y + Matrix.M[8] * u.z;
-	
+
 	return v;
 }
 
@@ -490,7 +490,7 @@ vec4 operator * (const mat4x4 &Matrix, const vec4 &u)
 	v.y = Matrix.M[1] * u.x + Matrix.M[5] * u.y + Matrix.M[9] * u.z + Matrix.M[13] * u.w;
 	v.z = Matrix.M[2] * u.x + Matrix.M[6] * u.y + Matrix.M[10] * u.z + Matrix.M[14] * u.w;
 	v.w = Matrix.M[3] * u.x + Matrix.M[7] * u.y + Matrix.M[11] * u.z + Matrix.M[15] * u.w;
-	
+
 	return v;
 }
 
@@ -524,7 +524,7 @@ mat4x4 inverse(const mat4x4 &Matrix)
 	const float *m = Matrix.M;
 
 	float det = 0.0f;
-	
+
 	det += m[0] * det3x3sub(m, 5, 6, 7, 9, 10, 11, 13, 14, 15);
 	det -= m[4] * det3x3sub(m, 1, 2, 3, 9, 10, 11, 13, 14, 15);
 	det += m[8] * det3x3sub(m, 1, 2, 3, 5, 6, 7, 13, 14, 15);

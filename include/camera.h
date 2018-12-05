@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _CAMERA_H_
+#define _CAMERA_H_
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -94,6 +95,11 @@ class Camera
       //updateCameraVectors();
     }
 
+    void setFront( glm::vec3 dir )
+    {
+      Front = glm::normalize( dir );
+    }
+
     float getYaw()
     {
       return Yaw;
@@ -166,7 +172,7 @@ class Camera
           if( Pitch > -PITCH_MAX ) {
             Pitch -= 1.0;
           }
- 
+
           break;
 
 
@@ -247,7 +253,6 @@ class Camera
               if( Pitch > PITCH_MAX ) {
                 Pitch = PITCH_MAX;
               }
-
             }
             //std::cout << CamPitch << " " << xzDelta << " " << delta.y << std::endl;
           }
@@ -264,3 +269,4 @@ class Camera
       Up    = glm::normalize(glm::cross(Right, Front));
     }
 };
+#endif

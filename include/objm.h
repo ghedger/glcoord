@@ -20,6 +20,9 @@ class ObjManager
     void add( ObjImpl *pO );
     void del( ObjImpl *pO );
     void update();
+    void setSubject( ObjImpl *pO );
+    ObjImpl *getSubject();
+    void getSubjectPos( glm::vec3& pos, glm::vec3& posPrev, glm::vec3& dir );
     void drawAll();
     void drawSEMAll(unsigned int renderedTexture, Camera *camera, glm::mat4 *projection, glm::mat4 *view);
 
@@ -28,5 +31,6 @@ class ObjManager
     ObjType   m_type;
     ObjImpl   m_headSentinel;
     ObjImpl   m_tailSentinel;
+    ObjImpl * m_pSubject;
 };
 #endif // #ifndef OBJMANAGER_H_

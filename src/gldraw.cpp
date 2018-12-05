@@ -30,6 +30,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void updateCamera(GLFWwindow *window);
 void processInput(GLFWwindow *window);
 unsigned int loadTexture(const char *path);
 
@@ -94,7 +95,7 @@ void setMaterialsAndLighting( Shader shader )
   shader.setFloat("material.shininess", 32.0f);
 
   // directional light
-  shader.setVec3("dirLight.direction", -0.5f, -0.5f, -0.0f);
+  shader.setVec3("dirLight.direction", -0.5f, -0.4f, -0.1f);
   shader.setVec3("dirLight.ambient", 0.6f, 0.6f, 0.6f);
   shader.setVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
   shader.setVec3("dirLight.specular", 0.9f, 0.9f, 0.9f);
@@ -116,6 +117,7 @@ void setMaterialsAndLighting( Shader shader )
   shader.setFloat("pointLights[1].quadratic", 0.032);
 }
 
+// render
 void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer )
 {
   if( toBuffer )
@@ -172,8 +174,9 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
   }
 
   // render
-  glClearColor(0.4f, 0.55f, 0.67f, 1.0f);
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClearColor(0.4f, 0.55f, 0.67f, 1.0f);
 
   // shader setup
   shader.use();
@@ -301,14 +304,13 @@ int main()
   g_lightingShader = &lightingShader;
   Shader lampShader("lamp.vs", "lamp.fs");
   Shader reflectShader("nolight.vs", "nolight.fs");
-  //Shader reflectShader("multilight.vs", "multilight.fs");
 
-  // GPH Stuff
+  // Initialize the playfield manager
   g_pPlayfield = new Playfield();
-  initGOP();
-  // End GPH
 
-#if 1
+  // Initialize the Graphics Operator manager
+  initGOP();
+
   // first, configure vertice array and vertice buffer objects
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
@@ -341,7 +343,6 @@ int main()
   diffuseMap = loadTexture( "tileset.png");
   specularMap = loadTexture( "pattern2.png");
   testTexture = loadTexture( "test.png");
-#endif
 
   // Set start position
   camera.setPosition( { 56.0, 0, 54.0 } );
@@ -380,10 +381,12 @@ int main()
     // END TEST
 
     // input
-    processInput(window);
+    // TODO: For now, updateCamera will replace processInput
+    //processInput(window);
+    updateCamera(window);
 
     // Do after all the movement and collision detection but before render
-    camera.UpdateVectors();
+    //camera.UpdateVectors();
 
     //
     // RENDER
@@ -414,6 +417,19 @@ int main()
   // glfw: terminate, clearing all previously allocated GLFW resources.
   glfwTerminate();
   return 0;
+}
+
+void updateCamera(GLFWwindow *window)
+{
+  camera.saveOldPosition();
+
+  glm::vec3 pos, posPrev, dir;
+  g_pObjManager->getSubjectPos(pos, posPrev, dir);
+
+  pos.y += 3.0;
+  camera.setPosition(pos);
+  camera.setFront(dir);
+
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
