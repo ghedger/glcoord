@@ -21,7 +21,7 @@
 
 #define VBO_BUFSIZE ((HP_XSIZE) * (HP_YSIZE) * 6 * 8)
 
-#define EYE_HEIGHT 0.5
+#define EYE_HEIGHT 5
 #define MAX_VIEWING_DISTANCE 200.0f
 
 // Control
@@ -29,5 +29,6 @@
 #define CTL_RIGHT 2
 #define CTL_UP 4
 #define CTL_DOWN 8
+#define SKY_COLOR 0.4f, 0.52f, 0.87f, 1.0f
 
 #endif // #ifndef _COMMON_H_

@@ -13,5 +13,8 @@ class BallObj : public ObjImpl
     void draw();
     void drawSEM(unsigned int renderedTexture, Camera *camera, glm::mat4 *projection, glm::mat4 *view);
     void update(Camera *camera);
+
+  private:
+    double m_ylaunchv;
 };
 #endif // #ifndef _BALLOBJ_H_

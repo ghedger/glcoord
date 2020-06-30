@@ -99,11 +99,18 @@ void ObjManager::getSubjectPos( glm::vec3& pos, glm::vec3& posPrev, glm::vec3& d
     static float cam_x = 0.0;
     static float cam_z = 0.0;
 
-    glm::vec3 normdir = glm::normalize(glm::vec3(pO->m_xv, pO->m_yv, pO->m_zv));
+    // Only update camera direction if object is moving at
+    // any reasonable speed.  If object is almost stopped,
+    // camera goes haywire.
+    if (abs(pO->m_xv) + abs(pO->m_yv) + abs(pO->m_zv) > 0.06) {
 
-    cam_x += ( ( pO->m_x - 5.0 * normdir.x) - cam_x) / 256.0;
-    cam_z += ( ( pO->m_z - 5.0 * normdir.z) - cam_z) / 256.0;
+      glm::vec3 normdir = glm::normalize(glm::vec3(pO->m_xv, pO->m_yv, pO->m_zv));
 
+
+
+      cam_x += ( ( pO->m_x - 5.0 * normdir.x) - cam_x) / 256.0;
+      cam_z += ( ( pO->m_z - 5.0 * normdir.z) - cam_z) / 256.0;
+    }
 
     pos.x = cam_x; //pO->m_x - 5.0 * normdir.x;
     pos.y = pO->m_y + 4.0;

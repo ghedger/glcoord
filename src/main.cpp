@@ -176,7 +176,7 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
   // render
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glClearColor(0.4f, 0.55f, 0.67f, 1.0f);
+  glClearColor(SKY_COLOR);
 
   // shader setup
   shader.use();
@@ -343,7 +343,7 @@ int main()
   glEnableVertexAttribArray(0);
 
   // load textures
-  diffuseMap = loadTexture( "tileset.png");
+  diffuseMap = loadTexture( "gridtiles.png");
   specularMap = loadTexture( "pattern.png");
   testTexture = loadTexture( "test.png");
 

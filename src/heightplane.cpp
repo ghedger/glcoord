@@ -46,17 +46,17 @@ HeightPlane::~HeightPlane()
 
 double HeightPlane::heightFn( double x, double y )
 {
-	float h = sin( x * ( M_PI * 2 ) / HP_XSIZE ) * .2 +
-		sin( y * ( M_PI * 2 ) / HP_YSIZE ) * .2;
+	float h = sin( x * ( M_PI * 2 ) / HP_XSIZE ) * 6.2 +
+		sin( y * ( M_PI * 2 ) / HP_YSIZE ) * 6.2;
 
 	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 2 ) * 0.3 +
 		sin( y * ( M_PI * 2 ) / HP_YSIZE * 2 ) *  0.3;
 
-	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 4 ) * 3.1 +
+	h -= sin( x * ( M_PI * 2 ) / HP_XSIZE * 4 ) * 3.1 +
 		sin( y * ( M_PI * 2 ) / HP_YSIZE * 4 ) * 3.1;
 
-	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 8 ) * 2.2 +
-		sin( y * ( M_PI * 2 ) / HP_YSIZE * 8 ) * 2.2;
+	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 8 ) * 9.2 +
+		sin( y * ( M_PI * 2 ) / HP_YSIZE * 8 ) * 0.2;
 	return h;
 }
 
@@ -81,14 +81,21 @@ bool HeightPlane::initHeightPlane()
 		for( x = 0; x < HP_XSIZE + 2; x++ ) {
 			h = heightFn(x, y);
 			if( x > 0 ) {
-				h += 100.0 / (HP_XSIZE + 2 - x );
-				h += 100.0 / x;
+				h += 1.0 / (HP_XSIZE + 2 - x );
+				h += 1.0 / x;
 			}
 			if( y > 0 ) {
-				h += 100.0 / (HP_YSIZE + 2 - y );
-				h += 100.0 / y;
+				h += 1.0 / (HP_YSIZE + 2 - y );
+				h += 1.0 / y;
 			}
 
+#if 1
+      if( !((x == HP_XSIZE / 2) && (y == HP_YSIZE / 2)) ) {
+        h -= 0.2 / (sqrt(pow(abs(HP_XSIZE / 2 - x),2) + pow(abs(HP_YSIZE / 2 - y),2))/2);
+      } else {
+        h -= 0.2;
+      }
+#endif
 			pHp[ x ][ y ] = h * 1.0;
 
 			if(
@@ -106,7 +113,11 @@ bool HeightPlane::initHeightPlane()
 				float zv = ( y - 1 ) * HP_GRIDSIZE;
 
 				// Tile mapping
-				unsigned int tile = ( unsigned int ) rand() % ( unsigned int ) 0x00ff;
+				unsigned int tile = 0; //( unsigned int ) ( ( ( x * ( M_PI * 2 ) / ( HP_XSIZE * 2 ) ) * 16) +
+                                 //              ( ( y * ( M_PI * 2 ) / ( HP_YSIZE * 2 ) ) * 16) ) & 0xff;
+        if ((rand() & 0x7fff) < 512) {
+          tile = rand() & 0x0e;
+        }
 				float txs = ( float ) ( tile & 0x0f ) / 16.0;
 				float tys = ( float ) ( ( tile >> 4 ) & 0x0f ) / 16.0;
 				float txe = ( float ) ( (txs + 1.0 / 16.0));
