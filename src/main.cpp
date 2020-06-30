@@ -35,8 +35,8 @@ void processInput(GLFWwindow *window);
 unsigned int loadTexture(const char *path);
 
 // settings
-unsigned int SCR_WIDTH = 800;
-unsigned int SCR_HEIGHT = 600;
+unsigned int SCR_WIDTH = 1280;
+unsigned int SCR_HEIGHT = 1024;
 float g_xpos = 30.0, g_ypos = 30.0, g_zpos = 0.0;
 float g_xyDir;
 
@@ -218,6 +218,7 @@ void render( glm::mat4 projection, glm::mat4 view, Shader& shader, bool toBuffer
   }
 }
 
+static bool _full_screen = false;
 GLFWwindow * initWindow()
 {
   // glfw: initialize and configure
@@ -230,8 +231,9 @@ GLFWwindow * initWindow()
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
+
   // glfw window creation
-  GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Roller Ball Concept", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Roller Ball Concept",  _full_screen ? glfwGetPrimaryMonitor() : NULL, NULL);
   if (window == NULL)
   {
     std::cout << "Failed to create GLFW window" << std::endl;
@@ -317,7 +319,6 @@ int main()
 
   glBindVertexArray(VAO);
 
-  // GPH Stuff
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, g_pPlayfield->getVerticeBufSize(), g_pPlayfield->getVertices(), GL_DYNAMIC_DRAW);
 
@@ -329,19 +330,21 @@ int main()
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
   glEnableVertexAttribArray(2);
 
-  // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
+  // second, configure the light's VAO (VBO stays the same;
+  // the vertices are the same for the light object which is also a 3D cube)
   unsigned int lightVAO;
   glGenVertexArrays(1, &lightVAO);
   glBindVertexArray(lightVAO);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
   // note that we update the lamp's position attribute's stride to reflect the updated buffer data
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
 
-  // load textures (we now use a utility function to keep the code more organized)
+  // load textures
   diffuseMap = loadTexture( "tileset.png");
-  specularMap = loadTexture( "pattern2.png");
+  specularMap = loadTexture( "pattern.png");
   testTexture = loadTexture( "test.png");
 
   // Set start position
@@ -354,7 +357,7 @@ int main()
   // init object manager AFTER models are loaded...
   initObj();
 
-  camera.setPitchAdjust( true );
+  // camera.setPitchAdjust( true );
 
   //
   // MAIN GAME LOOP
@@ -366,24 +369,27 @@ int main()
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
 
-#define PROFILE_FPS
+//#define PROFILE_FPS
 #ifdef PROFILE_FPS
     std::cout << (1.0f / deltaTime) << std::endl;
 #endif
 
-
     //
     // UPDATE GAME MOTION AND PHYSICS
     //
-    g_pObjManager->update();
+    g_pObjManager->update(&camera);
+
     // TEST CODE; REMOVE
     g_pPlayfield->test();
     // END TEST
 
     // input
-    // TODO: For now, updateCamera will replace processInput
-    //processInput(window);
+    processInput(window);
     updateCamera(window);
+
+    // Lemme out! Lemme out!
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+      glfwSetWindowShouldClose(window, true);
 
     // Do after all the movement and collision detection but before render
     //camera.UpdateVectors();
@@ -419,6 +425,8 @@ int main()
   return 0;
 }
 
+// TEMP; REMOVE
+bool _updatedFront = false;
 void updateCamera(GLFWwindow *window)
 {
   camera.saveOldPosition();
@@ -428,8 +436,10 @@ void updateCamera(GLFWwindow *window)
 
   pos.y += 3.0;
   camera.setPosition(pos);
-  camera.setFront(dir);
-
+  //if (!_updatedFront) {
+    camera.setFront(dir);
+  //  _updatedFront = true;
+  //}
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
@@ -444,17 +454,44 @@ void processInput(GLFWwindow *window)
     glfwSetWindowShouldClose(window, true);
 
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-    camera.ProcessKeyboard( ctrlPressed ? PITCH_UP : FORWARD, deltaTime);
+    g_pObjManager->setControl(CTL_UP);
+    //camera.ProcessKeyboard( ctrlPressed ? PITCH_UP : FORWARD, deltaTime);
   }
-  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-    camera.ProcessKeyboard( ctrlPressed ? PITCH_DOWN : BACKWARD, deltaTime);
+
+  if (g_pObjManager->getSubject()) {
+
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+      g_pObjManager->setControl(CTL_DOWN);
+      //camera.ProcessKeyboard( ctrlPressed ? PITCH_DOWN : BACKWARD, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+      g_pObjManager->setControl(CTL_LEFT);
+      //camera.ProcessKeyboard( ctrlPressed ? LEFT : TURNLEFT, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+      g_pObjManager->setControl(CTL_RIGHT);
+      //camera.ProcessKeyboard( ctrlPressed ? RIGHT : TURNRIGHT, deltaTime);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
+      g_pObjManager->clearControl(CTL_UP);
+      //camera.ProcessKeyboard( ctrlPressed ? PITCH_UP : FORWARD, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE) {
+      g_pObjManager->clearControl(CTL_DOWN);
+      //camera.ProcessKeyboard( ctrlPressed ? PITCH_DOWN : BACKWARD, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
+      g_pObjManager->clearControl(CTL_LEFT);
+      //camera.ProcessKeyboard( ctrlPressed ? LEFT : TURNLEFT, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
+      g_pObjManager->clearControl(CTL_RIGHT);
+      //camera.ProcessKeyboard( ctrlPressed ? RIGHT : TURNRIGHT, deltaTime);
+    }
   }
-  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-    camera.ProcessKeyboard( ctrlPressed ? LEFT : TURNLEFT, deltaTime);
-  }
-  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-    camera.ProcessKeyboard( ctrlPressed ? RIGHT : TURNRIGHT, deltaTime);
-  }
+
+
   glm::vec3 pos = camera.getPosition();
   pos.y = g_pPlayfield->getHeightAt( pos.x, pos.z ) + EYE_HEIGHT;
 //#define DEBUG_POSITION

@@ -24,4 +24,10 @@
 #define EYE_HEIGHT 0.5
 #define MAX_VIEWING_DISTANCE 200.0f
 
+// Control
+#define CTL_LEFT 1
+#define CTL_RIGHT 2
+#define CTL_UP 4
+#define CTL_DOWN 8
+
 #endif // #ifndef _COMMON_H_

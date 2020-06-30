@@ -12,6 +12,6 @@ class RobotObj : public ObjImpl
     bool init();
     void draw();
     void drawSEM(unsigned int renderedTexture, Camera *camera, glm::mat4 *projection, glm::mat4 *view);
-    void update();
+    void update(Camera *camera);
 };
 #endif // #ifdef ROBOTOBJ_H_

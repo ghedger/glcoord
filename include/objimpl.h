@@ -11,6 +11,7 @@
 #include <model.h>
 #include <gopmanager.h>
 #include "gameobj.h"
+#include "camera.h"
 
 enum ObjType
 {
@@ -70,7 +71,7 @@ class ObjImpl : public GameObj
     virtual void drawSEM( unsigned int renderedTexture, Camera *camera, glm::mat4 *projection, glm::mat4 *view) {
       GOPItem *pI = _gop_manager->getCurrentItem();
 
-      printf( "OI: %f %f %f\n", (float) m_x, (float) m_y, (float) m_z );
+      //printf( "OI: %f %f %f\n", (float) m_x, (float) m_y, (float) m_z );
       if( pI ) {
         // Set up our ball
         pI->m_pos = glm::vec3( (float) m_x, (float) m_y, (float) m_z );
@@ -86,7 +87,7 @@ class ObjImpl : public GameObj
       }
     }
 
-    virtual void update() {};
+    virtual void update(Camera *camera) {};
 
     // Interface functions
     // (none yet)
@@ -102,6 +103,8 @@ class ObjImpl : public GameObj
     void setModel(Model *model) { _model = model; }
     void setShader(Shader *shader) { _shader = shader; }
     void setGopManager(GOPManager *gop_manager) { _gop_manager = gop_manager; }
+    void setControl(const unsigned int ctl) { _ctl |= ctl; }
+    void clearControl(const unsigned int ctl) { _ctl &= ~ctl; }
 
   protected:
     class ObjImpl * _pNext;
@@ -111,6 +114,8 @@ class ObjImpl : public GameObj
     Model *     _model;
     Shader *    _shader;
     GOPManager *_gop_manager;
+
+    unsigned int _ctl;
 
     friend class ObjManager;
 };

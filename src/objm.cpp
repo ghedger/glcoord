@@ -5,6 +5,10 @@
 // TEMP; This shouldn't in the end be a global...
 extern Playfield *g_pPlayfield;
 
+//
+// OBJECT MANAGEMENT
+//
+
 ObjManager::ObjManager()
 {
   initSentinels();
@@ -39,17 +43,21 @@ void ObjManager::del( ObjImpl *pO )
   }
 }
 
-void ObjManager::update()
+void ObjManager::update(Camera *camera)
 {
   ObjImpl *pO = 0;
   if( ( pO = m_headSentinel.getNext() ) ) {
     while( pO != &m_tailSentinel )
     {
-      pO->update();
+      pO->update(camera);
       pO = pO->getNext();
     }
   }
 }
+
+//
+// CUSTOM OBJECT UPDATE CODE
+//
 
 // getSubject
 // Get the subject the camera is following
@@ -79,10 +87,27 @@ void ObjManager::getSubjectPos( glm::vec3& pos, glm::vec3& posPrev, glm::vec3& d
     setSubject( pO = m_headSentinel.getNext() );
   }
   if( pO ) {
+#if 0
+    glm::vec3 look_at;
+    look_at.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    look_at.y = sin(glm::radians(Pitch));
+    look_at.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    //glm::vect3 look_at_norm Front = glm::normalize(look_at);
+#endif
 
-    pos.x = pO->m_x - 5.0;
-    pos.y = pO->m_y + 10.0;
-    pos.z = pO->m_z - 5.0;
+    // TEMP: Should not be static and should not be here!
+    static float cam_x = 0.0;
+    static float cam_z = 0.0;
+
+    glm::vec3 normdir = glm::normalize(glm::vec3(pO->m_xv, pO->m_yv, pO->m_zv));
+
+    cam_x += ( ( pO->m_x - 5.0 * normdir.x) - cam_x) / 256.0;
+    cam_z += ( ( pO->m_z - 5.0 * normdir.z) - cam_z) / 256.0;
+
+
+    pos.x = cam_x; //pO->m_x - 5.0 * normdir.x;
+    pos.y = pO->m_y + 4.0;
+    pos.z = cam_z; //pO->m_z - 5.0 * normdir.z;
     float k = g_pPlayfield->getHeightAt( pos.x, pos.z ) + 0.5;
     if( pos.y < k ) {
       pos.y = k;
@@ -122,6 +147,12 @@ void ObjManager::getSubjectPos( glm::vec3& pos, glm::vec3& posPrev, glm::vec3& d
 }
 
 
+
+//
+// RENDERING
+//
+
+
 void ObjManager::drawAll()
 {
   ObjImpl *pO = 0;
@@ -134,6 +165,12 @@ void ObjManager::drawAll()
   }
 }
 
+// drawSEMAll
+// Draw Spherical Environment Mapped object
+// Entry: texture
+//        camera
+//        projection matrix
+//        view matrix
 void ObjManager::drawSEMAll(unsigned int renderedTexture, Camera *camera, glm::mat4 *projection, glm::mat4 *view)
 {
   ObjImpl *pO = 0;

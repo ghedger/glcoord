@@ -27,7 +27,6 @@ const float SENSITIVTY =  0.1f;
 const float ZOOM       =  45.0f;
 const float PITCH_MAX  =  67.5f;
 
-
 // An abstract camera class that processes input and calculates the
 // corresponding Eular Angles, Vectors and Matrices for use in OpenGL
 class Camera
@@ -131,6 +130,12 @@ class Camera
       return glm::lookAt(Position, Position + lookAt, Up );
     }
 
+    glm::vec3 GetViewVector()
+    {
+      return Front;
+    }
+
+
     // Returns the view matrix calculated using Eular Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix()
     {
@@ -218,6 +223,19 @@ class Camera
     void UpdateVectors()
     {
       updateCameraVectors();
+    }
+
+    void Turn(float turn) {
+      Yaw += turn;
+      if (turn > 0.0) {
+        if (Yaw > 360.0)
+          Yaw -= 360.0;
+      } else {
+        if (Yaw < 0.0) {
+          Yaw += 360.0;
+        }
+      }
+      UpdateVectors();
     }
 
   private:

@@ -46,17 +46,17 @@ HeightPlane::~HeightPlane()
 
 double HeightPlane::heightFn( double x, double y )
 {
-	float h = sin( x * ( M_PI * 2 ) / HP_XSIZE ) * 30 +
-		sin( y * ( M_PI * 2 ) / HP_YSIZE ) * 30;
+	float h = sin( x * ( M_PI * 2 ) / HP_XSIZE ) * .2 +
+		sin( y * ( M_PI * 2 ) / HP_YSIZE ) * .2;
 
-	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 2 ) * 16 +
-		sin( y * ( M_PI * 2 ) / HP_YSIZE * 2 ) * 16;
+	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 2 ) * 0.3 +
+		sin( y * ( M_PI * 2 ) / HP_YSIZE * 2 ) *  0.3;
 
-	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 4 ) * 8 +
-		sin( y * ( M_PI * 2 ) / HP_YSIZE * 4 ) * 8;
+	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 4 ) * 3.1 +
+		sin( y * ( M_PI * 2 ) / HP_YSIZE * 4 ) * 3.1;
 
-	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 8 ) * 3 +
-		sin( y * ( M_PI * 2 ) / HP_YSIZE * 8 ) * 3;
+	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 8 ) * 2.2 +
+		sin( y * ( M_PI * 2 ) / HP_YSIZE * 8 ) * 2.2;
 	return h;
 }
 

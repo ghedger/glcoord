@@ -5,11 +5,11 @@ struct Material {
     sampler2D diffuse;
     sampler2D specular;
     float shininess;
-}; 
+};
 
 struct DirLight {
     vec3 direction;
-  
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -17,11 +17,11 @@ struct DirLight {
 
 struct PointLight {
     vec3 position;
-    
+
     float constant;
     float linear;
     float quadratic;
-  
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -32,14 +32,14 @@ struct SpotLight {
     vec3 direction;
     float cutOff;
     float outerCutOff;
-  
+
     float constant;
     float linear;
     float quadratic;
-  
+
     vec3 ambient;
     vec3 diffuse;
-    vec3 specular;       
+    vec3 specular;
 };
 
 #define NR_POINT_LIGHTS 2
@@ -61,11 +61,11 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 //vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 void main()
-{    
+{
     // properties
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
-    
+
     // == =====================================================
     // Our lighting is set up in 3 phases: directional, point lights and an optional flashlight
     // For each phase, a calculate function is defined that calculates the corresponding color

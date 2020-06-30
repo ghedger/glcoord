@@ -6,6 +6,7 @@
 #include "gameobj.h"
 #include <glm/glm.hpp>
 #include "common.h"
+#include "camera.h"
 
 #define HP_MAX_PARAMS 4
 
@@ -19,7 +20,7 @@ class HeightPlane : public GameObj
     ~HeightPlane();
 
     // Interface implementations
-    virtual void update() {};
+    virtual void update(Camera *camera) {};
 
     // Heightplane implementations
     virtual float getHeightAt( const float x, const float y );
@@ -66,7 +67,7 @@ class HeightPlane : public GameObj
       _theta = fmod(_theta, M_PI * 2 );
 #endif
     }
-// END TEST CODE 
+// END TEST CODE
 
     virtual float *getVertices() { return m_vertices; };
     virtual int getVerticeTot() { return m_verticeTot; };

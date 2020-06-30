@@ -4,6 +4,8 @@
 #ifndef GAMEOBJ_H_
 #define GAMEOBJ_H_
 
+#include "camera.h"
+
 class GameObj
 {
   public:
@@ -11,7 +13,7 @@ class GameObj
     virtual ~GameObj();
 
     virtual bool init() = 0;
-    virtual void update() = 0;
+    virtual void update(Camera *camera) = 0;
     virtual void draw() = 0;
     virtual void move();
     virtual void setPos( double x, double y, double z ) {

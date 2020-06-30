@@ -35,7 +35,7 @@ void RobotObj::drawSEM(unsigned int renderedTexture, Camera *camera, glm::mat4 *
 }
 
 
-void RobotObj::update()
+void RobotObj::update(Camera *camera)
 {
   // Update velocity
 
