@@ -52,10 +52,10 @@ double HeightPlane::heightFn( double x, double y )
 	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 2 ) * 0.3 +
 		sin( y * ( M_PI * 2 ) / HP_YSIZE * 2 ) *  0.3;
 
-	h -= sin( x * ( M_PI * 2 ) / HP_XSIZE * 4 ) * 3.1 +
+	h -= sin( x * ( M_PI * 2 ) / HP_XSIZE * 4 ) * 2.1 +
 		sin( y * ( M_PI * 2 ) / HP_YSIZE * 4 ) * 3.1;
 
-	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 8 ) * 9.2 +
+	h += sin( x * ( M_PI * 2 ) / HP_XSIZE * 8 ) * 0.3 +
 		sin( y * ( M_PI * 2 ) / HP_YSIZE * 8 ) * 0.2;
 	return h;
 }
